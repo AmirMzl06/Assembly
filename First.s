@@ -3,48 +3,42 @@ extern printf
 extern scanf
 
 section .data
-ab_scanf_format: db "%lld %lld",0 ;a b
-
-printf_format: db "GCD = %lld", 10, 0 ;gcd x y
+    scan_fmt: db "%lld %lld", 0 
+    print_fmt: db "GCD = %lld", 10, 0
 
 section .text
 main:
     sub rsp, 24
 
-    mov rdi, ab_scanf_format
-    mov rsi, rsp ;a     a > b (farz)
-    mov rdx , qword [rsp+8] ;b
+    mov rdi, scan_fmt
+    lea rsi, [rsp] 
+    lea rdx, [rsp+8]
+    xor eax, eax
     call scanf
-    
-    cmp rdx,rsi
-    jg Change
-    
-    cmp rdx,0
-    je End
-    
-    mov rcx,rdx
-    jmp FindGCD
-    
-Change:
-    mov rcx,rsi
-    mov rsi,rdx
-    mov rdx,rcx
-    
-FindGCD:
-    cmp rcx,0
-    je End
+
+
+GCD_Loop:
+    cmp qword [rsp+8], 0
+    je End_Print
+
+    mov rax, [rsp]
     
     cqo
-    idiv rcx
-    mov rsi,rcx
-    mov rcx, rdx
     
-    jmp FindGCD
-    
-    
-End:    
-    ;mov rsi,rsi
-    mov rdi,printf_format
+    idiv qword [rsp+8] 
+
+    mov rcx, [rsp+8]
+    mov [rsp], rcx
+
+    mov [rsp+8], rdx
+
+    jmp GCD_Loop
+
+End_Print:
+    mov rdi, print_fmt
+    mov rsi, [rsp]
+    xor eax, eax
+    call printf
     add rsp, 24
-    mov eax, 0
+    xor eax, eax
     ret
