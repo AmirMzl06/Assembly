@@ -3,42 +3,53 @@ extern printf
 extern scanf
 
 section .data
-    scan_fmt: db "%lld %lld", 0 
-    print_fmt: db "GCD = %lld", 10, 0
+ab_scanf_format: db "%lld %lld",0 ;a b
+
+printf_format: db "GCD = %lld", 10, 0 ;gcd x y
 
 section .text
 main:
     sub rsp, 24
 
-    mov rdi, scan_fmt
-    lea rsi, [rsp] 
-    lea rdx, [rsp+8]
-    xor eax, eax
+    mov rdi, ab_scanf_format
+    mov rsi, rsp ;a     a > b (farz)
+    lea rdx , qword [rsp+8] ;b
+    xor rax, rax
     call scanf
-
-
-GCD_Loop:
-    cmp qword [rsp+8], 0
-    je End_Print
-
-    mov rax, [rsp]
     
-    cqo
+    mov r8,qword [rsp] ;r8 = a
+    mov r9,qword [rsp+8] ; r9 = b
     
-    idiv qword [rsp+8] 
-
-    mov rcx, [rsp+8]
-    mov [rsp], rcx
-
-    mov [rsp+8], rdx
-
-    jmp GCD_Loop
-
-End_Print:
-    mov rdi, print_fmt
-    mov rsi, [rsp]
-    xor eax, eax
+    cmp r8,r9
+    jg Change
+    
+    cmp r8,0
+    je End
+    
+    jmp FindGCD
+    
+Change:
+    mov rcx,r8
+    mov r8,r9
+    mov r9,rcx
+    
+FindGCD:
+    xor rdx, rdx
+    mov rax, r9
+    div r8
+    mov r9, r8          
+    mov r8, rdx              
+    cmp r8, 0
+    jne End
+    
+    jmp FindGCD
+    
+    
+End:    
+    mov rdi,printf_format
+    mov rsi,r9
+    xor rax, rax
     call printf
     add rsp, 24
-    xor eax, eax
+    mov eax, 0
     ret
