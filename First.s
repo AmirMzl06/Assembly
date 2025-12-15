@@ -39,14 +39,11 @@ main:
 
     mov qword [Nloop], 0
     mov qword [isChanged], 0
-
-    mov rax, [A]
-    cmp rax, 0
-    je End
-
-    mov rax, [A]
-    cmp rax, [B]
-    jle FindGCD
+    
+    cmp [A],[B]
+    jl Change
+    
+    jump Continue
 
 Change:
     mov rax, [A]
@@ -54,7 +51,13 @@ Change:
     mov [A], rbx
     mov [B], rax
     mov qword [isChanged], 1
+     
 
+Continue:
+    mov rax, [A]
+    cmp rax, 0
+    je End
+    
 FindGCD:
     mov rax, [B]
     cqo
@@ -75,6 +78,9 @@ FindGCD:
 
     cmp rdx, 0
     jne FindGCD
+    
+pop rax
+pop rax
 
 FindAB:
     mov rax, [Nloop]
