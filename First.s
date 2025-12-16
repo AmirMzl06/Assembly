@@ -9,14 +9,18 @@ printf_format:   db "%lld %lld %lld",10,0   ; gcd x y
 
 A dq 0
 B dq 0
+An dq 0
+Bn dq 0
 isChanged dq 0
 Nloop dq 0
 
-; متغیرهای نهایی برای ضرایب
-x  dq 0
+x  dq 1
 y  dq 0
+x0 dq 1
+y0 dq 0
+x1 dq 0
+y1 dq 1
 
-; متغیرهای کمکی برای محاسبه
 a dq 0
 b dq 0
 
@@ -31,10 +35,12 @@ asm_main:
     call scanf
 
     mov rax, [rsp]
-    mov [A], rax    
+    mov [A], rax    ;A kochik taras
+    mov [An],rax
     mov rax, [rsp+8]
     mov [B], rax
-
+    mov [Bn],rax
+    
     mov qword [Nloop], 0
     mov qword [isChanged], 0
     mov rax,[A]
@@ -57,20 +63,15 @@ Continue:
     je End
     
 FindGCD:
-    ; محاسبه خارج قسمت و باقی‌مانده
     mov rax, [B]
     cqo
     idiv qword [A]
     
-    ; ذخیره مقادیر فعلی در استک برای بازگشت
     mov rbx, [A]
     push rbx
     mov rbx, [B]
     push rbx
 
-    ; آپدیت مقادیر برای دور بعد
-    ; B = A
-    ; A = Remainder (rdx)
     mov rbx, [A]
     mov [B], rbx
     mov [A], rdx
@@ -82,64 +83,67 @@ FindGCD:
     cmp rdx, 0
     jne FindGCD
     
-    ; --- شروع بخش اصلاح شده ---
-    
-    ; مقداردهی اولیه برای بازگشت (Back-substitution)
-    ; در آخرین مرحله: 0*A + 1*B = GCD
-    ; پس x (ضریب A) باید 0 باشد و y (ضریب B) باید 1 باشد
-    mov qword [x], 0
-    mov qword [y], 1
-
 FindAB:
     mov rax, [Nloop]
     cmp rax, 0
-    je Chn
+    je Calculate
 
-    ; بازیابی مقادیر
     pop rax
-    mov [b], rax    ; مقدار بزرگتر این مرحله
+    mov [b], rax
     pop rax
-    mov [a], rax    ; مقدار کوچکتر این مرحله
+    mov [a], rax
 
-    ; محاسبه مجدد خارج قسمت (Quotient)
-    mov rax, [b]
+    mov rax, [a]
     cqo
-    idiv qword [a]  ; rax = quotient (q)
+    idiv qword [b]
 
-    ; فرمول بازگشتی اقلیدس:
-    ; new_x = old_y - (q * old_x)
-    ; new_y = old_x
-    
-    mov rbx, [x]    ; rbx = old_x
-    mov rcx, [y]    ; rcx = old_y
+    ; x update
+    mov r9, [x1]
+    imul r9, rax
+    mov r10, [x0]
+    sub r10, r9
+    mov [x], r10
 
-    ; محاسبه q * old_x
-    imul rax, rbx   ; rax = q * x
+    mov r9, [x1]
+    mov [x0], r9
+    mov r9, [x]
+    mov [x1], r9
 
-    ; محاسبه old_y - (q * old_x)
-    sub rcx, rax    ; rcx = y - q*x
-    
-    ; آپدیت متغیرها
-    mov [x], rcx    ; x = new_x
-    mov [y], rbx    ; y = new_y (که همان old_x است)
+    ; y update
+    mov r9, [y1]
+    imul r9, rax
+    mov r10, [y0]
+    sub r10, r9
+    mov [y], r10
+
+    mov r9, [y1]
+    mov [y0], r9
+    mov r9, [y]
+    mov [y1], r9
 
     mov rax, [Nloop]
     dec rax
     mov [Nloop], rax
     jmp FindAB
-    
-    ; --- پایان بخش اصلاح شده ---
+
+Calculate:
+    mov rax,[Bn]
+    imul rax,[y]
+    imul rax,-1
+    add rax,[B] ;GCD
+    cqo
+    idiv qword [An]
+    mov [x],rax
 
 Chn:
     cmp qword [isChanged], 1
-    jne End
+    jne Calculate
 
-    ; اگر جای A و B را اول کار عوض کردیم، الان جای ضرایب را عوض می‌کنیم
     mov rax, [x]
     mov rbx, [y]
     mov [x], rbx
     mov [y], rax
-
+  
 End:
     mov rdi, printf_format
     mov rsi, [B]    ; gcd
