@@ -1,33 +1,33 @@
-global asm_main
-
+global main
 extern printf
 extern scanf
 
 section .data
 ab_scanf_format: db "%lld %lld",0
-printf_format:   db "%lld %lld %lld",10,0   ; gcd x y
+printf_format:   db "%lld %lld %lld",10,0 ; gcd x y
 
+; متغیرهای برنامه
 A dq 0
 B dq 0
-An dq 0
-Bn dq 0
-isChanged dq 0
+
+; برای نگهداری خارج‌قسمت‌ها (q) — ظرفیت 256 کافی است
+qspace: times 256 dq 0
 Nloop dq 0
 
-x  dq 1
-y  dq 0
+; متغیرهای برای ضرایب
+x dq 0
+y dq 0
 x0 dq 1
 y0 dq 0
 x1 dq 0
 y1 dq 1
 
-a dq 0
-b dq 0
-
 section .text
-asm_main:
+main:
+    ; فضای محلی برای scanf/printf (همانند کد اصلی)
     sub rsp, 24
 
+    ; خواندن ورودی
     mov rdi, ab_scanf_format
     lea rsi, [rsp]
     lea rdx, [rsp+8]
@@ -35,123 +35,98 @@ asm_main:
     call scanf
 
     mov rax, [rsp]
-    mov [A], rax    ;A kochik taras
-    mov [An],rax
+    mov [A], rax
     mov rax, [rsp+8]
     mov [B], rax
-    mov [Bn],rax
-    
-    mov qword [Nloop], 0
-    mov qword [isChanged], 0
-    mov rax,[A]
-    cmp rax,[B]
-    jl Change
-    
-    jmp Continue
 
-Change:
-    mov rax, [A]
-    mov rbx, [B]
-    mov [A], rbx
-    mov [B], rax
-    mov qword [isChanged], 1
-     
-
-Continue:
-    mov rax, [A]
-    cmp rax, 0
-    je End
-    
-FindGCD:
+    ; اگر B == 0 بلافاصله خروجی بده (gcd = A, x=1, y=0)
     mov rax, [B]
+    cmp rax, 0
+    je PrintResult
+
+    ; صفر کردن شمارنده خروجی‌ها
+    mov qword [Nloop], 0
+
+FindGCD:
+    ; q = A / B ; r = A % B
+    mov rax, [A]
     cqo
-    idiv qword [A]
-    
-    mov rbx, [A]
-    push rbx
-    mov rbx, [B]
-    push rbx
+    idiv qword [B]     ; rax = q ، rdx = r
 
-    mov rbx, [A]
-    mov [B], rbx
-    mov [A], rdx
+    ; ذخیره q در qspace[Nloop]
+    mov rcx, [Nloop]
+    mov [qspace + rcx*8], rax
+    inc qword [Nloop]
 
-    mov rax, [Nloop]
-    inc rax
-    mov [Nloop], rax
+    ; A = B ; B = r
+    mov rax, [B]
+    mov [A], rax
+    mov rax, rdx
+    mov [B], rax
 
-    cmp rdx, 0
+    ; تکرار تا زمانی که B == 0
+    mov rax, [B]
+    cmp rax, 0
     jne FindGCD
-    
-FindAB:
+
+    ; در این‌جا gcd در [A] قرار دارد
+
+    ; اگر هیچ خارج‌قسمتی ذخیره نشده (مثلاً موقعی که ابتدای کار B==0) از این مرحله بگذر
     mov rax, [Nloop]
     cmp rax, 0
-    je Calculate
+    je PrintResult
 
-    pop rax
-    mov [b], rax
-    pop rax
-    mov [a], rax
+FindAB:
+    ; بازسازی ضرایب با خواندن خارج‌قسمت‌ها از qspace از آخر به اول
+    ; s0=x0, s1=x1 ; t0=y0, t1=y1
+LoopBack:
+    ; بارگذاری آخرین خارج‌قسمت: index = Nloop - 1
+    mov rcx, [Nloop]
+    dec rcx
+    mov rax, [qspace + rcx*8]   ; rax = q
 
-    mov rax, [a]
-    cqo
-    idiv qword [b]
-
-    ; x update
+    ; محاسبه x = x0 - q * x1
     mov r9, [x1]
-    imul r9, rax
+    imul r9, rax        ; r9 = q * x1
     mov r10, [x0]
-    sub r10, r9
+    sub r10, r9         ; r10 = x0 - q*x1
     mov [x], r10
 
-    mov r9, [x1]
-    mov [x0], r9
-    mov r9, [x]
-    mov [x1], r9
+    ; shift: x0 = x1 ; x1 = x
+    mov r11, [x1]
+    mov [x0], r11
+    mov r11, [x]
+    mov [x1], r11
 
-    ; y update
+    ; محاسبه y = y0 - q * y1
     mov r9, [y1]
-    imul r9, rax
+    imul r9, rax        ; r9 = q * y1
     mov r10, [y0]
-    sub r10, r9
+    sub r10, r9         ; r10 = y0 - q*y1
     mov [y], r10
 
-    mov r9, [y1]
-    mov [y0], r9
-    mov r9, [y]
-    mov [y1], r9
+    ; shift: y0 = y1 ; y1 = y
+    mov r11, [y1]
+    mov [y0], r11
+    mov r11, [y]
+    mov [y1], r11
 
-    mov rax, [Nloop]
-    dec rax
-    mov [Nloop], rax
-    jmp FindAB
+    ; کاهش شمارنده و تکرار تا صفر شدن
+    mov rbx, [Nloop]
+    dec rbx
+    mov [Nloop], rbx
+    cmp rbx, 0
+    jne LoopBack
 
-Calculate:
-    mov rax,[Bn]
-    imul rax,[y]
-    imul rax,-1
-    add rax,[B] ;GCD
-    cqo
-    idiv qword [An]
-    mov [x],rax
-
-Chn:
-    cmp qword [isChanged], 1
-    jne Calculate
-
-    mov rax, [x]
-    mov rbx, [y]
-    mov [x], rbx
-    mov [y], rax
-  
-End:
+PrintResult:
+    ; پرینت: gcd , x0 , y0
     mov rdi, printf_format
-    mov rsi, [B]    ; gcd
-    mov rdx, [x]
-    mov rcx, [y]
+    mov rsi, [A]      ; gcd
+    mov rdx, [x0]     ; x
+    mov rcx, [y0]     ; y
     xor rax, rax
     call printf
 
     add rsp, 24
-    xor eax, eax
+    mov eax, 0
     ret
