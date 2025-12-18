@@ -23,7 +23,7 @@ main:
     xor rax, rax
     call scanf
     mov rax, [rsp]
-    mov [A], rax 
+    mov [A], rax ;A kochik taras
     mov rax, [rsp+8]
     mov [B], rax
     mov qword [Nloop], 0
@@ -47,102 +47,98 @@ Continue:
     cmp rax, 0
     je End
     
-    ; فراخوانی تابع بازگشتی
+    ; --- شروع بخش بازگشتی ---
     call RecursiveGCD
     
-    ; چون بازگشت استک را برعکس پر می‌کند، باید آن را مرتب کنیم تا FindAB درست کار کند
-    call ReverseStack
+    ; --- فیکس کردن استک (Stack Reversal) ---
+    ; چون در بازگشت، آخرین مرحله میره ته استک و اولین مرحله میاد رو،
+    ; و تابع FindAB انتظار داره آخرین مرحله رو باشه، باید کل استک رو برعکس کنیم.
     
+    cmp qword [Nloop], 1
+    jle AfterReverse ; اگر 0 یا 1 لوپ بود نیاز به تغییر نیست
+
+    ; محاسبه تعداد کل اعداد در استک (هر لوپ 2 عدد: A و B)
+    mov rcx, [Nloop]
+    shl rcx, 1        ; ضرب در 2 (تعداد کلمات 8 بایتی)
+    
+    ; تنظیم اشاره‌گرها
+    mov rsi, rsp             ; اشاره‌گر پایین (شروع استک)
+    mov rdi, rsp
+    mov rax, rcx
+    dec rax
+    shl rax, 3               ; ضرب در 8 (سایز هر خانه)
+    add rdi, rax             ; اشاره‌گر بالا (ته داده‌ها)
+    
+    shr rcx, 1               ; تعداد دفعات جابجایی (نصف طول)
+
+ReverseLoop:
+    cmp rcx, 0
+    je AfterReverse
+    
+    mov rax, [rsi]
+    mov rbx, [rdi]
+    mov [rsi], rbx   ; جابجایی
+    mov [rdi], rax
+    
+    add rsi, 8       ; برو خانه بعدی
+    sub rdi, 8       ; بیا خانه قبلی
+    dec rcx
+    jmp ReverseLoop
+
+AfterReverse:
     jmp FindAB
 
 ; --------------------------------------------
 ; تابع بازگشتی GCD
+; این تابع جایگزین لوپ FindGCD شده است
 ; --------------------------------------------
 RecursiveGCD:
     ; شرط پایان: اگر A == 0 برگرد
     cmp qword [A], 0
-    je .DoneRec
+    je .ReturnPoint
 
-    ; مقادیر فعلی را برای استفاده بعد از بازگشت در پشته موقت (یا رجیسترها) نگه می‌داریم
-    mov rbx, [A] ; مقدار A فعلی
-    mov rcx, [B] ; مقدار B فعلی
-    
-    ; محاسبه تقسیم و آپدیت A و B برای مرحله بعد
+    ; 1. انجام تقسیم
     mov rax, [B]
     cqo
     idiv qword [A]
     
-    ; آپدیت گلوبال‌ها برای فراخوانی بعدی
+    ; 2. نگه داشتن مقادیر A و B فعلی در رجیسترهای safe (rbx, r12)
+    ; چون میخوایم بعد از برگشت تابع (post-order) اینا رو پوش کنیم
+    mov rbx, [A] ; A فعلی
+    mov r12, [B] ; B فعلی
+    
+    ; 3. آپدیت مقادیر جهانی برای مرحله بعد
     mov [B], rbx  ; B جدید = A قدیم
     mov [A], rdx  ; A جدید = باقیمانده
     
-    ; افزایش شمارنده
+    ; 4. افزایش شمارنده
     mov rax, [Nloop]
     inc rax
     mov [Nloop], rax
     
-    ; مقادیر قدیم رو توی استک فریم نگه میداریم (با پوش کردن قبل از کال)
-    push rbx ; Old A
-    push rcx ; Old B
+    ; 5. ذخیره موقت مقادیر در استک فریم برای حفظ در طول فراخوانی بازگشتی
+    push rbx 
+    push r12
     
+    ; 6. فراخوانی خود تابع (Recursive Call)
     call RecursiveGCD
     
-    ; بعد از بازگشت، مقادیر رو برای FindAB در استک اصلی قرار میدیم
-    ; نکته: چون اینجا داریم آنوایند (Unwind) میکنیم، اولین پوش مربوط به آخرین مرحله است
-    ; این باعث میشه ترتیب برعکس حالتِ لوپ معمولی باشه
-    pop rcx ; بازیابی Old B
-    pop rbx ; بازیابی Old A
+    ; 7. بازیابی مقادیر بعد از برگشت
+    pop r12
+    pop rbx
     
-    push rbx ; پوش کردن برای FindAB
-    push rcx ; پوش کردن برای FindAB
+    ; 8. قرار دادن در استک اصلی برای استفاده در FindAB
+    ; (اینجا مقادیر به ترتیب برعکس وارد استک میشن که در main درستش میکنیم)
+    push rbx
+    push r12
     
     ret
 
-.DoneRec:
+.ReturnPoint:
     ret
 
 ; --------------------------------------------
-; تابع معکوس کردن استک (برای هماهنگی با FindAB)
-; --------------------------------------------
-ReverseStack:
-    cmp qword [Nloop], 1
-    jle .NoReverse ; اگر 0 یا 1 لوپ بود نیاز به تغییر نیست
-
-    ; ما باید 2 * Nloop آیتم را در استک معکوس کنیم (چون هر لوپ 2 عدد پوش میکنه)
-    mov rcx, [Nloop] 
-    imul rcx, 2      ; تعداد کل اعداد در استک (A و B برای هر مرحله)
-    
-    ; الگوریتم ساده برای معکوس کردن محتوای استک
-    ; استفاده از دو اشاره‌گر: یکی پایین استک (rsp) و یکی بالای داده‌ها
-    
-    mov rsi, rsp             ; اشاره‌گر پایین (Low)
-    mov rdi, rsp
-    mov rax, rcx
-    dec rax
-    shl rax, 3               ; ضرب در 8 (سایز qword)
-    add rdi, rax             ; اشاره‌گر بالا (High)
-    
-    shr rcx, 1               ; تعداد جابجایی‌ها (تعداد کل / 2)
-    
-.ReverseLoop:
-    cmp rcx, 0
-    je .NoReverse
-    
-    mov rax, [rsi]
-    mov rbx, [rdi]
-    mov [rsi], rbx
-    mov [rdi], rax
-    
-    add rsi, 8
-    sub rdi, 8
-    dec rcx
-    jmp .ReverseLoop
-    
-.NoReverse:
-    ret
-
-; --------------------------------------------
-; همان تابع FindAB اصلی بدون تغییر
+; FindAB - بدون تغییر نسبت به کد اصلی
 ; --------------------------------------------
 FindAB:
     mov rax, [Nloop]
