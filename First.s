@@ -1,149 +1,122 @@
-global asm_main
+global main
 extern printf
 extern scanf
 
 section .data
     ab_scanf_format: db "%lld %lld",0
-    printf_format:   db "%lld %lld %lld",10,0   ; gcd x y
+    printf_format:   db "%lld %lld %lld",10,0
 
     A dq 0
     B dq 0
     isChanged dq 0
-    Nloop dq 0
 
     x dq 0
     y dq 1
-    a dq 0
-    b dq 0
 
 section .text
-;--------------------------------------------------
-; FindGCD_Recursive  (با push)
-;--------------------------------------------------
-FindGCD_Recursive:
-    mov rax, [A]
-    test rax, rax
-    je .base
 
-    mov rax, [B]
+;--------------------------------------------------
+; ExtGCD (بازگشتی) - محاسبه‌ی ضرایب x,y طوری که
+; A*x + B*y = gcd(A,B)
+; در این پیاده‌سازی A و B در حافظه (labels A,B) قرار دارند
+; از r12,r13 به عنوان رجیسترهای محافظت‌شده استفاده می‌کنیم
+;--------------------------------------------------
+ExtGCD:
+    ; save callee-saved temps (push two regs -> keeps alignment)
+    push    r12
+    push    r13
+
+    mov     rax, [A]
+    test    rax, rax
+    je      .base_case
+
+    ; compute q = B / A  and remainder in rdx
+    mov     rax, [B]
     cqo
-    idiv qword [A]        ; rdx = B % A
+    idiv    qword [A]      ; quotient in rax, remainder in rdx
 
-    ; ذخیره A و B روی stack
-    push qword [A]
-    push qword [B]
+    mov     r12, rax       ; r12 := q (saved across recursive call)
+    mov     r13, [A]       ; r13 := old A
 
-    mov rbx, [A]
-    mov [B], rbx
-    mov [A], rdx
+    ; rotate (A,B) := (rdx, oldA)
+    mov     [B], r13       ; B = oldA
+    mov     [A], rdx       ; A = remainder
 
-    inc qword [Nloop]
-    call FindGCD_Recursive
+    call    ExtGCD
 
+    ; after return: x,y contain x1,y1 for (A_new,B_new)
+    ; r12 still holds q (callee-saved restored by recursion)
+
+    ; compute: new_x = y1 - q * x1
+    ;          new_y = x1
+
+    mov     r13, [x]       ; r13 = x1
+    imul    r13, r12       ; r13 = q * x1
+    mov     rdx, [y]       ; rdx = y1
+    sub     rdx, r13       ; rdx = y1 - q*x1  => new_x
+
+    mov     r13, [x]       ; reload x1
+    mov     [x], rdx       ; store new_x
+    mov     [y], r13       ; store new_y = x1
+
+    ; restore saved regs and return
+    pop     r13
+    pop     r12
     ret
-.base:
+
+.base_case:
+    ; A == 0 -> gcd = B  ; coefficients: x = 0, y = 1  (i.e. 0*A + 1*B = B)
+    mov     qword [x], 0
+    mov     qword [y], 1
+
+    pop     r13
+    pop     r12
     ret
 
 ;--------------------------------------------------
-asm_main:
-    sub rsp, 24
-
-    ; scanf
-    mov rdi, ab_scanf_format
-    lea rsi, [rsp]
-    lea rdx, [rsp+8]
-    xor rax, rax
-    call scanf
-
-    mov rax, [rsp]
-    mov rbx, [rsp+8]
-
-    ; حالت خاص: 0 0
-    test rax, rax
-    jne .cont0
-    test rbx, rbx
-    jne .cont0
-
-    mov rdi, printf_format
-    xor rsi, rsi
-    xor rdx, rdx
-    xor rcx, rcx
-    call printf
-    jmp asm_main.exit
-
-.cont0:
-    mov [A], rax
-    mov [B], rbx
-    mov qword [Nloop], 0
-    mov qword [isChanged], 0
-
-    ; ---------- Change (swap مثل کد خودت) ----------
-    mov rax, [A]
-    cmp rax, [B]
-    jle .noChange
-
-    mov rbx, [A]
-    mov rcx, [B]
-    mov [A], rcx
-    mov [B], rbx
-    mov qword [isChanged], 1
-
-.noChange:
-    call FindGCD_Recursive
-
+; main: خواندن ورودی، احتمالاً جابه‌جا کردن A و B
+; و فراخوانی ExtGCD سپس چاپ
 ;--------------------------------------------------
-; FindAB  (فرمول درست backward)
-;--------------------------------------------------
-FindAB:
-    mov rax, [Nloop]
-    cmp rax, 0
-    je Chn
+main:
+    sub     rsp, 24               ; فضای محلی برای scanf
 
-    pop rax
-    mov [b], rax
-    pop rax
-    mov [a], rax
+    mov     rdi, ab_scanf_format
+    lea     rsi, [rsp]
+    lea     rdx, [rsp+8]
+    xor     rax, rax
+    call    scanf
 
-    mov rax, [b]
-    cqo
-    idiv qword [a]     ; rax = q
+    mov     rax, [rsp]
+    mov     rbx, [rsp+8]
 
-    ; new_x = old_y - q*old_x
-    ; new_y = old_x
-    mov r8, [x]
-    mov r9, [y]
+    mov     [A], rax
+    mov     [B], rbx
+    mov     qword [isChanged], 0
 
-    imul r8, rax
-    sub r9, r8
+    ; اگر A > B، جابجا کن تا A همیشه کوچکتر باشد
+    mov     rax, [A]
+    cmp     rax, [B]
+    jg      .do_swap
+    jmp     .call_ext
 
-    mov [x], r9
-    mov [y], r8
+.do_swap:
+    mov     rax, [A]
+    mov     rbx, [B]
+    mov     [A], rbx
+    mov     [B], rax
+    mov     qword [isChanged], 1
 
-    dec qword [Nloop]
-    jmp FindAB
+.call_ext:
+    call    ExtGCD
 
-;--------------------------------------------------
-; برگرداندن swap اگر انجام شده
-;--------------------------------------------------
-Chn:
-    cmp qword [isChanged], 1
-    jne End
+    ; چاپ: gcd (در [B]) سپس x و y مربوط به (A,B) فعلی
+    mov     rdi, printf_format
+    mov     rsi, [B]    ; gcd
+    mov     rdx, [x]
+    mov     rcx, [y]
+    xor     rax, rax
+    call    printf
 
-    mov rax, [x]
-    mov rbx, [y]
-    mov [x], rbx
-    mov [y], rax
-
-;--------------------------------------------------
-End:
-    mov rdi, printf_format
-    mov rsi, [B]   ; gcd
-    mov rdx, [x]
-    mov rcx, [y]
-    xor rax, rax
-    call printf
-
-asm_main.exit:
-    add rsp, 24
-    xor eax, eax
+    add     rsp, 24
+    xor     eax, eax
     ret
