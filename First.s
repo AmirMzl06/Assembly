@@ -11,31 +11,67 @@ section .data
     Nloop dq 0
     x dq 0
     y dq 1
-    a dq 0
-    b dq 0
 
 section .text
+
+;---------------------------------------------------------------------
+; تابع بازگشتی برای محاسبه ب.م.م و پر کردن پشته برای FindAB
+; این تابع جایگزین حلقه FindGCD قبلی شده است.
+;---------------------------------------------------------------------
+FindGCD_Recursive:
+    mov rax, [A]
+    cmp rax, 0      ; شرط پایه: اگر A برابر صفر شود، ب.م.م در B قرار دارد و بازگشت تمام می‌شود
+    je .end_recursion
+
+    ; --- بخش بازگشتی ---
+    ; مقادیر فعلی A و B را برای استفاده در FindAB روی پشته قرار می‌دهیم
+    push qword [A]
+    push qword [B]
+    inc qword [Nloop]
+
+    ; عملیات تقسیم: B = q*A + r
+    mov rax, [B]    ; مقسوم
+    cqo             ; RAX را برای تقسیم علامت‌دار گسترش می‌دهد
+    idiv qword [A]  ; مقسوم علیه. خارج قسمت در RAX و باقیمانده در RDX
+
+    ; مقادیر A و B را برای فراخوانی بازگشتی بعدی به‌روزرسانی می‌کنیم
+    mov rbx, [A]    ; نگه‌داشتن مقدار قدیمی A
+    mov [A], rdx    ; A جدید = باقیمانده
+    mov [B], rbx    ; B جدید = A قدیمی
+    
+    call FindGCD_Recursive ; فراخوانی بازگشتی
+
+.end_recursion:
+    ret
+;---------------------------------------------------------------------
+
 main:
+    ; آماده‌سازی پشته و خواندن ورودی‌ها
     sub rsp, 24
     mov rdi, ab_scanf_format
     lea rsi, [rsp]
     lea rdx, [rsp+8]
     xor rax, rax
     call scanf
+
+    ; ذخیره ورودی‌ها در متغیرهای A و B
     mov rax, [rsp]
-    mov [A], rax ;A kochik taras
+    mov [A], rax
     mov rax, [rsp+8]
     mov [B], rax
+
     mov qword [Nloop], 0
     mov qword [isChanged], 0
-    
-    mov rax,[A]
-    cmp rax,[B]
+
+    ; اطمینان از اینکه A از B بزرگتر است
+    mov rax, [A]
+    cmp rax, [B]
     jl Change
     
     jmp Continue
 
 Change:
+    ; جابجایی مقادیر A و B
     mov rax, [A]
     mov rbx, [B]
     mov [A], rbx
@@ -43,142 +79,57 @@ Change:
     mov qword [isChanged], 1
     
 Continue:
-    mov rax, [A]
-    cmp rax, 0
-    je End
-    
-    ; --- شروع بخش بازگشتی ---
-    call RecursiveGCD
-    
-    ; --- فیکس کردن استک (Stack Reversal) ---
-    ; چون در بازگشت، آخرین مرحله میره ته استک و اولین مرحله میاد رو،
-    ; و تابع FindAB انتظار داره آخرین مرحله رو باشه، باید کل استک رو برعکس کنیم.
-    
-    cmp qword [Nloop], 1
-    jle AfterReverse ; اگر 0 یا 1 لوپ بود نیاز به تغییر نیست
+    ; فراخوانی تابع بازگشتی برای محاسبه ب.م.م
+    call FindGCD_Recursive
+    ; پس از اتمام تابع، ب.م.م در [B] است و پشته برای FindAB آماده است
 
-    ; محاسبه تعداد کل اعداد در استک (هر لوپ 2 عدد: A و B)
-    mov rcx, [Nloop]
-    shl rcx, 1        ; ضرب در 2 (تعداد کلمات 8 بایتی)
-    
-    ; تنظیم اشاره‌گرها
-    mov rsi, rsp             ; اشاره‌گر پایین (شروع استک)
-    mov rdi, rsp
-    mov rax, rcx
-    dec rax
-    shl rax, 3               ; ضرب در 8 (سایز هر خانه)
-    add rdi, rax             ; اشاره‌گر بالا (ته داده‌ها)
-    
-    shr rcx, 1               ; تعداد دفعات جابجایی (نصف طول)
-
-ReverseLoop:
-    cmp rcx, 0
-    je AfterReverse
-    
-    mov rax, [rsi]
-    mov rbx, [rdi]
-    mov [rsi], rbx   ; جابجایی
-    mov [rdi], rax
-    
-    add rsi, 8       ; برو خانه بعدی
-    sub rdi, 8       ; بیا خانه قبلی
-    dec rcx
-    jmp ReverseLoop
-
-AfterReverse:
-    jmp FindAB
-
-; --------------------------------------------
-; تابع بازگشتی GCD
-; این تابع جایگزین لوپ FindGCD شده است
-; --------------------------------------------
-RecursiveGCD:
-    ; شرط پایان: اگر A == 0 برگرد
-    cmp qword [A], 0
-    je .ReturnPoint
-
-    ; 1. انجام تقسیم
-    mov rax, [B]
-    cqo
-    idiv qword [A]
-    
-    ; 2. نگه داشتن مقادیر A و B فعلی در رجیسترهای safe (rbx, r12)
-    ; چون میخوایم بعد از برگشت تابع (post-order) اینا رو پوش کنیم
-    mov rbx, [A] ; A فعلی
-    mov r12, [B] ; B فعلی
-    
-    ; 3. آپدیت مقادیر جهانی برای مرحله بعد
-    mov [B], rbx  ; B جدید = A قدیم
-    mov [A], rdx  ; A جدید = باقیمانده
-    
-    ; 4. افزایش شمارنده
-    mov rax, [Nloop]
-    inc rax
-    mov [Nloop], rax
-    
-    ; 5. ذخیره موقت مقادیر در استک فریم برای حفظ در طول فراخوانی بازگشتی
-    push rbx 
-    push r12
-    
-    ; 6. فراخوانی خود تابع (Recursive Call)
-    call RecursiveGCD
-    
-    ; 7. بازیابی مقادیر بعد از برگشت
-    pop r12
-    pop rbx
-    
-    ; 8. قرار دادن در استک اصلی برای استفاده در FindAB
-    ; (اینجا مقادیر به ترتیب برعکس وارد استک میشن که در main درستش میکنیم)
-    push rbx
-    push r12
-    
-    ret
-
-.ReturnPoint:
-    ret
-
-; --------------------------------------------
-; FindAB - بدون تغییر نسبت به کد اصلی
-; --------------------------------------------
 FindAB:
     mov rax, [Nloop]
     cmp rax, 0
     je Chn
-    pop rax
-    mov [b], rax
-    pop rax
-    mov [a], rax
-    mov rax, [b]
+    
+    ; یک اصلاح کوچک: مقادیر از پشته در دو رجیستر متفاوت (rax و rbx) pop می‌شوند
+    ; تا از بروز خطا جلوگیری شود.
+    pop rbx ; مقدار B از یک مرحله قبل
+    pop rax ; مقدار A از یک مرحله قبل
+    
+    ; محاسبه مجدد خارج قسمت (q) برای این مرحله
+    push rax        ; ذخیره موقت rax (مقدار A)
+    mov rax, rbx    ; انتقال مقدار B به rax برای تقسیم
     cqo
-    idiv qword [a]
-    ; intertwined update for x and y
-    mov r9, [x]    ; r9 = old x (temp)
-    mov r11, r9    ; save old x for new y
-    mov r10, [y]   ; r10 = old y
-    imul r9, rax   ; r9 = q * old x
-    sub r10, r9    ; r10 = old y - q * old x
-    mov [x], r10   ; new x
-    mov [y], r11   ; new y = old x
-    mov rax, [Nloop]
-    dec rax
-    mov [Nloop], rax
+    idiv qword [rsp] ; تقسیم B بر A. خارج قسمت در rax
+    pop rbx         ; بازیابی مقدار A در rbx (اینجا لازم نیست ولی برای خوانایی خوب است)
+    
+    ; به‌روزرسانی ضرایب x و y
+    mov r9, [x]     ; r9 = x قدیمی
+    mov r11, r9     ; ذخیره x قدیمی برای y جدید
+    mov r10, [y]    ; r10 = y قدیمی
+    imul r9, rax    ; r9 = q * x قدیمی
+    sub r10, r9     ; r10 = y قدیمی - (q * x قدیمی)
+    mov [x], r10    ; x جدید
+    mov [y], r11    ; y جدید = x قدیمی
+    
+    dec qword [Nloop]
     jmp FindAB
 
 Chn:
+    ; اگر در ابتدا A و B جابجا شده بودند، ضرایب x و y هم جابجا می‌شوند
     cmp qword [isChanged], 1
     jne End
     mov rax, [x]
     mov rbx, [y]
     mov [x], rbx
     mov [y], rax
-    
+
 End:
+    ; چاپ نتیجه نهایی
     mov rdi, printf_format
-    mov rsi, [B] ; gcd
+    mov rsi, [B] ; ب.م.م
     mov rdx, [x]
     mov rcx, [y]
     xor rax, rax
     call printf
+    
     add rsp, 24
     mov eax, 0
     ret
