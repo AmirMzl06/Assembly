@@ -1,23 +1,24 @@
-global main
+global asm_main
 extern printf
 extern scanf
 
 section .data
     ab_scanf_format: db "%lld %lld",0
-    printf_format:   db "%lld %lld %lld",10,0 ; gcd x y
+    printf_format:   db "%lld %lld %lld",10,0   ; gcd x y
 
     A dq 0
     B dq 0
+    isChanged dq 0
     Nloop dq 0
 
-    x dq 1
-    y dq 0
+    x dq 0
+    y dq 1
     a dq 0
     b dq 0
 
 section .text
 ;--------------------------------------------------
-; FindGCD_Recursive (با push، امن)
+; FindGCD_Recursive  (با push)
 ;--------------------------------------------------
 FindGCD_Recursive:
     mov rax, [A]
@@ -26,8 +27,9 @@ FindGCD_Recursive:
 
     mov rax, [B]
     cqo
-    idiv qword [A]      ; فقط وقتی A≠0
+    idiv qword [A]        ; rdx = B % A
 
+    ; ذخیره A و B روی stack
     push qword [A]
     push qword [B]
 
@@ -36,20 +38,17 @@ FindGCD_Recursive:
     mov [A], rdx
 
     inc qword [Nloop]
-
     call FindGCD_Recursive
 
-    pop rbx
-    pop rbx
     ret
-
 .base:
     ret
 
 ;--------------------------------------------------
-main:
+asm_main:
     sub rsp, 24
 
+    ; scanf
     mov rdi, ab_scanf_format
     lea rsi, [rsp]
     lea rdx, [rsp+8]
@@ -59,64 +58,92 @@ main:
     mov rax, [rsp]
     mov rbx, [rsp+8]
 
-    ; اگر هر دو صفرند
+    ; حالت خاص: 0 0
     test rax, rax
-    jne .ok1
+    jne .cont0
     test rbx, rbx
-    jne .ok1
+    jne .cont0
 
-    ; gcd(0,0) = 0
     mov rdi, printf_format
     xor rsi, rsi
     xor rdx, rdx
     xor rcx, rcx
     call printf
-    jmp .exit
+    jmp asm_main.exit
 
-.ok1:
+.cont0:
     mov [A], rax
     mov [B], rbx
     mov qword [Nloop], 0
+    mov qword [isChanged], 0
 
+    ; ---------- Change (swap مثل کد خودت) ----------
+    mov rax, [A]
+    cmp rax, [B]
+    jle .noChange
+
+    mov rbx, [A]
+    mov rcx, [B]
+    mov [A], rcx
+    mov [B], rbx
+    mov qword [isChanged], 1
+
+.noChange:
     call FindGCD_Recursive
 
 ;--------------------------------------------------
+; FindAB  (فرمول درست backward)
+;--------------------------------------------------
 FindAB:
     mov rax, [Nloop]
-    test rax, rax
-    je Print
+    cmp rax, 0
+    je Chn
 
     pop rax
     mov [b], rax
     pop rax
     mov [a], rax
 
-    test qword [a], 0
-    je Print     ; جلوگیری از div صفر
-
     mov rax, [b]
     cqo
-    idiv qword [a]
+    idiv qword [a]     ; rax = q
 
-    mov r9, [x]
-    mov r10, [y]
-    imul r9, rax
-    sub r10, r9
-    mov [x], r10
-    mov [y], r9
+    ; new_x = old_y - q*old_x
+    ; new_y = old_x
+    mov r8, [x]
+    mov r9, [y]
+
+    imul r8, rax
+    sub r9, r8
+
+    mov [x], r9
+    mov [y], r8
 
     dec qword [Nloop]
     jmp FindAB
 
-Print:
+;--------------------------------------------------
+; برگرداندن swap اگر انجام شده
+;--------------------------------------------------
+Chn:
+    cmp qword [isChanged], 1
+    jne End
+
+    mov rax, [x]
+    mov rbx, [y]
+    mov [x], rbx
+    mov [y], rax
+
+;--------------------------------------------------
+End:
     mov rdi, printf_format
-    mov rsi, [B]
+    mov rsi, [B]   ; gcd
     mov rdx, [x]
     mov rcx, [y]
     xor rax, rax
     call printf
 
-.exit:
+asm_main.exit:
     add rsp, 24
     xor eax, eax
     ret
