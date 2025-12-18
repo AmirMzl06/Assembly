@@ -11,42 +11,52 @@ section .data
     Nloop dq 0
     x dq 0
     y dq 1
+    a dq 0
+    b dq 0
 
 section .text
 
 ;---------------------------------------------------------------------
-; تابع بازگشتی برای محاسبه ب.م.م و پر کردن پشته برای FindAB
+; تابع بازگشتی برای محاسبه ب.م.م
 ; این تابع جایگزین حلقه FindGCD قبلی شده است.
 ;---------------------------------------------------------------------
 FindGCD_Recursive:
+    ; شرط پایه: اگر A صفر باشد، بازگشت از توابع بازگشتی شروع می‌شود
     mov rax, [A]
-    cmp rax, 0      ; شرط پایه: اگر A برابر صفر شود، ب.م.م در B قرار دارد و بازگشت تمام می‌شود
+    cmp rax, 0
     je .end_recursion
 
     ; --- بخش بازگشتی ---
-    ; مقادیر فعلی A و B را برای استفاده در FindAB روی پشته قرار می‌دهیم
-    push qword [A]
-    push qword [B]
-    inc qword [Nloop]
-
-    ; عملیات تقسیم: B = q*A + r
-    mov rax, [B]    ; مقسوم
-    cqo             ; RAX را برای تقسیم علامت‌دار گسترش می‌دهد
-    idiv qword [A]  ; مقسوم علیه. خارج قسمت در RAX و باقیمانده در RDX
-
-    ; مقادیر A و B را برای فراخوانی بازگشتی بعدی به‌روزرسانی می‌کنیم
-    mov rbx, [A]    ; نگه‌داشتن مقدار قدیمی A
-    mov [A], rdx    ; A جدید = باقیمانده
-    mov [B], rbx    ; B جدید = A قدیمی
+    ; تقسیم B بر A
+    mov rax, [B]
+    cqo
+    idiv qword [A]
     
-    call FindGCD_Recursive ; فراخوانی بازگشتی
+    ; push کردن مقادیر A و B فعلی روی پشته برای استفاده در FindAB
+    ; (دقیقا مشابه کد اصلی شما)
+    mov rbx, [A]
+    push rbx
+    mov rbx, [B]
+    push rbx
+    
+    ; به‌روزرسانی A و B برای مرحله بعد
+    mov rbx, [A]
+    mov [B], rbx  ; B جدید = A قدیمی
+    mov [A], rdx  ; A جدید = باقیمانده
+    
+    inc qword [Nloop]
+    
+    ; تراز کردن پشته به مضربی از 16 قبل از فراخوانی بازگشتی برای جلوگیری از segfault
+    sub rsp, 8
+    call FindGCD_Recursive
+    add rsp, 8
 
 .end_recursion:
     ret
+
 ;---------------------------------------------------------------------
 
 main:
-    ; آماده‌سازی پشته و خواندن ورودی‌ها
     sub rsp, 24
     mov rdi, ab_scanf_format
     lea rsi, [rsp]
@@ -54,24 +64,21 @@ main:
     xor rax, rax
     call scanf
 
-    ; ذخیره ورودی‌ها در متغیرهای A و B
     mov rax, [rsp]
-    mov [A], rax
+    mov [A], rax ; A بزرگتر است
     mov rax, [rsp+8]
     mov [B], rax
 
     mov qword [Nloop], 0
     mov qword [isChanged], 0
 
-    ; اطمینان از اینکه A از B بزرگتر است
-    mov rax, [A]
-    cmp rax, [B]
+    mov rax,[A]
+    cmp rax,[B]
     jl Change
     
     jmp Continue
 
 Change:
-    ; جابجایی مقادیر A و B
     mov rax, [A]
     mov rbx, [B]
     mov [A], rbx
@@ -79,41 +86,40 @@ Change:
     mov qword [isChanged], 1
     
 Continue:
-    ; فراخوانی تابع بازگشتی برای محاسبه ب.م.م
+    ; اولین فراخوانی تابع بازگشتی
     call FindGCD_Recursive
-    ; پس از اتمام تابع، ب.م.م در [B] است و پشته برای FindAB آماده است
+    
+    ; بعد از اتمام بازگشت‌ها، GCD در [B] قرار دارد (چون آخرین مقدار غیرصفر A به B منتقل شده)
+    ; و پشته برای FindAB آماده است.
 
 FindAB:
     mov rax, [Nloop]
     cmp rax, 0
     je Chn
     
-    ; یک اصلاح کوچک: مقادیر از پشته در دو رجیستر متفاوت (rax و rbx) pop می‌شوند
-    ; تا از بروز خطا جلوگیری شود.
-    pop rbx ; مقدار B از یک مرحله قبل
-    pop rax ; مقدار A از یک مرحله قبل
-    
-    ; محاسبه مجدد خارج قسمت (q) برای این مرحله
-    push rax        ; ذخیره موقت rax (مقدار A)
-    mov rax, rbx    ; انتقال مقدار B به rax برای تقسیم
+    ; این بخش دقیقا کد شماست
+    pop rax
+    mov [b], rax
+    pop rax
+    mov [a], rax
+    mov rax, [b]
     cqo
-    idiv qword [rsp] ; تقسیم B بر A. خارج قسمت در rax
-    pop rbx         ; بازیابی مقدار A در rbx (اینجا لازم نیست ولی برای خوانایی خوب است)
+    idiv qword [a]
+    ; intertwined update for x and y
+    mov r9, [x]     ; r9 = old x (temp)
+    mov r11, r9     ; save old x for new y
+    mov r10, [y]    ; r10 = old y
+    imul r9, rax    ; r9 = q * old x
+    sub r10, r9     ; r10 = old y - q * old x
+    mov [x], r10    ; new x
+    mov [y], r11    ; new y = old x
     
-    ; به‌روزرسانی ضرایب x و y
-    mov r9, [x]     ; r9 = x قدیمی
-    mov r11, r9     ; ذخیره x قدیمی برای y جدید
-    mov r10, [y]    ; r10 = y قدیمی
-    imul r9, rax    ; r9 = q * x قدیمی
-    sub r10, r9     ; r10 = y قدیمی - (q * x قدیمی)
-    mov [x], r10    ; x جدید
-    mov [y], r11    ; y جدید = x قدیمی
-    
-    dec qword [Nloop]
+    mov rax, [Nloop]
+    dec rax
+    mov [Nloop], rax
     jmp FindAB
 
 Chn:
-    ; اگر در ابتدا A و B جابجا شده بودند، ضرایب x و y هم جابجا می‌شوند
     cmp qword [isChanged], 1
     jne End
     mov rax, [x]
@@ -122,14 +128,13 @@ Chn:
     mov [y], rax
 
 End:
-    ; چاپ نتیجه نهایی
     mov rdi, printf_format
-    mov rsi, [B] ; ب.م.م
+    mov rsi, [B] ; gcd
     mov rdx, [x]
     mov rcx, [y]
     xor rax, rax
     call printf
-    
+
     add rsp, 24
     mov eax, 0
     ret
