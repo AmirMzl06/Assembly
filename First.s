@@ -10,23 +10,26 @@ section .data
     B dq 0
     Nloop dq 0
 
-    x dq 0
-    y dq 1
+    x dq 1
+    y dq 0
     a dq 0
     b dq 0
 
 section .text
 ;--------------------------------------------------
-; FindGCD_Recursive (بدون push)
+; FindGCD_Recursive (با push، امن)
 ;--------------------------------------------------
 FindGCD_Recursive:
     mov rax, [A]
-    cmp rax, 0
-    je .done
+    test rax, rax
+    je .base
 
     mov rax, [B]
     cqo
-    idiv qword [A]     ; rdx = B % A
+    idiv qword [A]      ; فقط وقتی A≠0
+
+    push qword [A]
+    push qword [B]
 
     mov rbx, [A]
     mov [B], rbx
@@ -35,7 +38,12 @@ FindGCD_Recursive:
     inc qword [Nloop]
 
     call FindGCD_Recursive
-.done:
+
+    pop rbx
+    pop rbx
+    ret
+
+.base:
     ret
 
 ;--------------------------------------------------
@@ -49,30 +57,42 @@ main:
     call scanf
 
     mov rax, [rsp]
-    mov [A], rax
-    mov rax, [rsp+8]
-    mov [B], rax
+    mov rbx, [rsp+8]
 
+    ; اگر هر دو صفرند
+    test rax, rax
+    jne .ok1
+    test rbx, rbx
+    jne .ok1
+
+    ; gcd(0,0) = 0
+    mov rdi, printf_format
+    xor rsi, rsi
+    xor rdx, rdx
+    xor rcx, rcx
+    call printf
+    jmp .exit
+
+.ok1:
+    mov [A], rax
+    mov [B], rbx
     mov qword [Nloop], 0
+
     call FindGCD_Recursive
 
 ;--------------------------------------------------
-; FindAB (push/pop اینجاست)
-;--------------------------------------------------
 FindAB:
     mov rax, [Nloop]
-    cmp rax, 0
+    test rax, rax
     je Print
 
-    mov rax, [B]
-    push rax
-    mov rax, [A]
-    push rax
-
-    pop rax
-    mov [a], rax
     pop rax
     mov [b], rax
+    pop rax
+    mov [a], rax
+
+    test qword [a], 0
+    je Print     ; جلوگیری از div صفر
 
     mov rax, [b]
     cqo
@@ -96,6 +116,7 @@ Print:
     xor rax, rax
     call printf
 
+.exit:
     add rsp, 24
     xor eax, eax
     ret
