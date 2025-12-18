@@ -1,105 +1,202 @@
 global main
-extern printf
-extern scanf
 
 section .data
-ab_scanf_format: db "%lld %lld",0
-printf_format:   db "%lld %lld %lld",10,0
 A dq 0
 B dq 0
-isChanged dq 0
-x dq 0
-y dq 1
+counter dq 0
+powTen dq 1
+powTenA dq 1
+trimCounter dq 5
+seeSpace dq 0
+lowerCounter dq 6
+
+errMsg db "Error",10
+errLen equ 6
+
+nl db 10
+
+section .bss
+input  resb 100
+output resb 100
 
 section .text
 
-ExtGCD:
-    push r12
-    push r13
-
-    mov rax, [A]
-    test rax, rax
-    je  .base_case
-
-    mov rax, [B]
-    cqo
-    idiv qword [A]
-
-    mov r12, rax
-    mov r13, [A]
-
-    mov [B], r13
-    mov [A], rdx
-
-    call ExtGCD
-
-    mov r13, [x]
-    imul r13, r12
-    mov rdx, [y]
-    sub rdx, r13
-
-    mov r13, [x]
-    mov [x], rdx
-    mov [y], r13
-
-    pop r13
-    pop r12
-    ret
-
-.base_case:
-    mov qword [x], 0
-    mov qword [y], 1
-    pop r13
-    pop r12
-    ret
-
 main:
-    sub rsp, 24
+MainLoop:
+    mov rax, 0
+    mov rdi, 0
+    mov rsi, input
+    mov rdx, 100
+    syscall
 
-    mov rdi, ab_scanf_format
-    lea rsi, [rsp]
-    lea rdx, [rsp+8]
-    xor rax, rax
-    call scanf
+    cmp byte [input], 'e'
+    je Exit
 
-    mov rax, [rsp]
-    mov rbx, [rsp+8]
+    cmp byte [input], 'd'
+    je DivMl
+    cmp byte [input], 'm'
+    je DivMl
+    cmp byte [input], 't'
+    je Trim
+    cmp byte [input], 'l'
+    je lower
 
-    mov [A], rax
-    mov [B], rbx
-    mov qword [isChanged], 0
+    jmp MainLoop
 
+DivMl:
+    mov qword [A], 0
+    mov qword [B], 0
+    mov qword [powTen], 1
+    mov qword [powTenA], 1
+
+    mov rax, 0
+    mov rbx, 4
+
+FindB:
+    movzx r15, byte [input + rbx]
+    cmp r15, ' '
+    je FindA
+    sub r15, '0'
+    imul r15, [powTen]
+    add [B], r15
+    imul qword [powTen], 10
+    inc rbx
+    jmp FindB
+
+FindA:
+    inc rbx
+NextA:
+    movzx r15, byte [input + rbx]
+    cmp r15, 10
+    je Calculate
+    sub r15, '0'
+    imul r15, [powTenA]
+    add [A], r15
+    imul qword [powTenA], 10
+    inc rbx
+    jmp NextA
+
+Calculate:
+    cmp byte [input], 'd'
+    je clcD
+    jmp clcM
+
+clcD:
+    cmp qword [B], 0
+    je PrintError
     mov rax, [A]
-    cmp rax, [B]
-    jg .do_swap
-    jmp .call_ext
+    cqo
+    idiv qword [B]
+    jmp PrintNumber
 
-.do_swap:
+clcM:
     mov rax, [A]
-    mov rbx, [B]
-    mov [A], rbx
-    mov [B], rax
-    mov qword [isChanged], 1
+    imul rax, [B]
+    jmp PrintNumber
 
-.call_ext:
-    call ExtGCD
+PrintError:
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, errMsg
+    mov rdx, errLen
+    syscall
+    jmp MainLoop
 
-    cmp qword [isChanged], 1
-    jne .print
+PrintNumber:
+    mov rbx, 10
+    lea rsi, [output + 99]
+    mov byte [rsi], 10
+    dec rsi
 
-    mov rax, [x]
-    mov rbx, [y]
-    mov [x], rbx
-    mov [y], rax
+.conv:
+    xor rdx, rdx
+    div rbx
+    add dl, '0'
+    mov [rsi], dl
+    dec rsi
+    test rax, rax
+    jnz .conv
 
-.print:
-    mov rdi, printf_format
-    mov rsi, [B]
-    mov rdx, [x]
-    mov rcx, [y]
-    xor rax, rax
-    call printf
+    inc rsi
+    mov rdx, output+100
+    sub rdx, rsi
+    mov rax, 1
+    mov rdi, 1
+    syscall
+    jmp MainLoop
 
-    add rsp, 24
-    xor eax, eax
-    ret
+Trim:
+    mov rsi, input
+    mov rdi, output
+    xor rcx, rcx
+    mov byte [seeSpace], 1
+
+.trimLoop:
+    mov al, [rsi]
+    cmp al, 10
+    je .done
+    cmp al, ' '
+    je .space
+    cmp al, 9
+    je .space
+
+    mov byte [seeSpace], 0
+    mov [rdi], al
+    inc rdi
+    jmp .next
+
+.space:
+    cmp byte [seeSpace], 1
+    je .next
+    mov byte [seeSpace], 1
+    mov byte [rdi], ' '
+    inc rdi
+
+.next:
+    inc rsi
+    jmp .trimLoop
+
+.done:
+    mov byte [rdi], 10
+    inc rdi
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, output
+    mov rdx, rdi
+    syscall
+    jmp MainLoop
+
+lower:
+    mov rsi, input
+    mov rdi, output
+
+.lowLoop:
+    mov al, [rsi]
+    cmp al, 10
+    je .lend
+    cmp al, 'A'
+    jb .copy
+    cmp al, 'Z'
+    ja .copy
+    add al, 32
+
+.copy:
+    mov [rdi], al
+    inc rdi
+    inc rsi
+    jmp .lowLoop
+
+.lend:
+    mov byte [rdi], 10
+    inc rdi
+    mov rax, 1
+    mov rdi, 1
+    mov rsi, output
+    mov rdx, rdi
+    syscall
+    jmp MainLoop
+
+Exit:
+    mov rax, 60
+    xor rdi, rdi
+    syscall
