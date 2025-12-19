@@ -24,6 +24,7 @@ cmd resb 10
 section .text
 
 main:
+    push r12
     sub rsp, 32
 
     mov rdi, nm_scanf_format
@@ -92,17 +93,17 @@ printMinCmd:
     jmp getCommand
 
 print:
-    mov r8, [firstNum]
+    mov r12, [firstNum]
 
 pLoop:
-    cmp r8, [secondNum]
+    cmp r12, [secondNum]
     jg printNL
 
     mov rdi, printArray
-    mov rsi, [num_array + r8*8]
+    mov rsi, [num_array + r12*8]
     call printf
 
-    inc r8
+    inc r12
     jmp pLoop
 
 printNL:
@@ -171,4 +172,5 @@ rev_done:
 
 end:
     add rsp, 32
+    pop r12
     ret
