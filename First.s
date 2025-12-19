@@ -6,7 +6,7 @@ B dq 0
 seeSpace db 0
 
 errMsg db "Error",10
-errLen equ $ - errMsg
+errLen equ 6
 
 section .bss
 input   resb 4096
