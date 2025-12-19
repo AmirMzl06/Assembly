@@ -3,10 +3,10 @@ global main
 section .data
 A dq 0
 B dq 0
-seeSpace dq 0
+seeSpace db 0
 
 errMsg db "Error",10
-errLen equ 6
+errLen equ $ - errMsg
 
 section .bss
 input   resb 4096
@@ -26,14 +26,16 @@ ReadAll:
     test rax, rax
     jz Exit
 
-    mov rbx, 0 
     mov r12, rax
+    xor rbx, rbx
 
 ParseLoop:
     cmp rbx, r12
     jge ReadAll
 
     mov rdi, line
+    xor rcx, rcx
+
 LineCopy:
     cmp rbx, r12
     jge LineDone
@@ -41,26 +43,30 @@ LineCopy:
     inc rbx
     cmp al, 10
     je LineDone
-    mov [rdi], al
-    inc rdi
+    mov [rdi + rcx], al
+    inc rcx
     jmp LineCopy
 
 LineDone:
-    mov byte [rdi], 0
+    mov byte [rdi + rcx], 0
 
-    mov eax, dword [line]
-    cmp eax, 0x74697865
+    cmp dword [line], 'exit'
+    je Exit
+    cmp byte [line + 4], 0
+    jne CheckCmd
+    cmp byte [line + 3], 't'
     je Exit
 
-    cmp byte [line], 'd'
+CheckCmd:
+    mov al, [line]
+    cmp al, 'd'
     je DivMl
-    cmp byte [line], 'm'
+    cmp al, 'm'
     je DivMl
-    cmp byte [line], 't'
+    cmp al, 't'
     je Trim
-    cmp byte [line], 'l'
+    cmp al, 'l'
     je lower
-
     jmp ParseLoop
 
 DivMl:
@@ -81,6 +87,10 @@ FindB:
 .digit:
     cmp r15, ' '
     je FindA
+    cmp r15, 9
+    je FindB
+    cmp r15, 0
+    je FindA
     sub r15, '0'
     mov rax, [A]
     imul rax, 10
@@ -91,6 +101,7 @@ FindB:
 
 FindA:
     inc rbx
+
 NextA:
     movzx r15, byte [line + rbx]
     cmp r15, '-'
@@ -102,6 +113,10 @@ NextA:
 .digitA:
     cmp r15, 0
     je ApplySigns
+    cmp r15, ' '
+    je NextA
+    cmp r15, 9
+    je NextA
     sub r15, '0'
     mov rax, [B]
     imul rax, 10
@@ -111,12 +126,12 @@ NextA:
     jmp NextA
 
 ApplySigns:
-    cmp r12, 1
-    jne .sb
+    test r12, r12
+    jz .sb
     neg qword [A]
 .sb:
-    cmp r13, 1
-    jne Calc
+    test r13, r13
+    jz Calc
     neg qword [B]
 
 Calc:
@@ -133,13 +148,11 @@ DoDiv:
     cqo
     idiv qword [B]
     test rdx, rdx
-    jz .done
-    mov r15, [A]
-    xor r15, [B]
-    test r15, r15
-    jns .done
+    jz PrintNumber
+    mov rcx, [A]
+    xor rcx, [B]
+    jns PrintNumber
     dec rax
-.done:
     jmp PrintNumber
 
 PrintError:
@@ -152,32 +165,32 @@ PrintError:
 
 PrintNumber:
     mov rbx, 10
-    lea rsi, [output+255]
+    lea rsi, [output + 255]
     mov byte [rsi], 10
     dec rsi
 
     mov r8, rax
     test rax, rax
-    jge .c
+    jge .loop
     neg rax
 
-.c:
+.loop:
     xor rdx, rdx
     div rbx
     add dl, '0'
     mov [rsi], dl
     dec rsi
     test rax, rax
-    jnz .c
+    jnz .loop
 
     cmp r8, 0
-    jge .p
+    jge .print
     mov byte [rsi], '-'
     dec rsi
 
-.p:
+.print:
     inc rsi
-    mov rdx, output+256
+    mov rdx, output + 256
     sub rdx, rsi
     mov rax, 1
     mov rdi, 1
@@ -185,43 +198,43 @@ PrintNumber:
     jmp ParseLoop
 
 Trim:
-    mov rsi, line+5
+    mov rsi, line + 5
     mov rdi, output
     mov byte [seeSpace], 0
 
-.tl:
+TrimLoop:
     mov al, [rsi]
-    cmp al, 0
-    je .td
+    test al, al
+    jz TrimEnd
     cmp al, ' '
-    je .sp
+    je TrimSpace
     cmp al, 9
-    je .sp
+    je TrimSpace
     mov byte [seeSpace], 0
     mov [rdi], al
     inc rdi
     inc rsi
-    jmp .tl
+    jmp TrimLoop
 
-.sp:
+TrimSpace:
     cmp byte [seeSpace], 1
-    je .sk
+    je TrimSkip
     mov byte [seeSpace], 1
     cmp rdi, output
-    je .sk
+    je TrimSkip
     mov byte [rdi], ' '
     inc rdi
-.sk:
+TrimSkip:
     inc rsi
-    jmp .tl
+    jmp TrimLoop
 
-.td:
+TrimEnd:
     cmp rdi, output
-    je .put_nl
-    cmp byte [rdi-1], ' '
-    jne .put_nl
+    je TrimNL
+    cmp byte [rdi - 1], ' '
+    jne TrimNL
     dec rdi
-.put_nl:
+TrimNL:
     mov byte [rdi], 10
     inc rdi
     mov rdx, rdi
@@ -233,25 +246,25 @@ Trim:
     jmp ParseLoop
 
 lower:
-    mov rsi, line+6
+    mov rsi, line + 6
     mov rdi, output
 
-.ll:
+LowerLoop:
     mov al, [rsi]
-    cmp al, 0
-    je .ld
+    test al, al
+    jz LowerEnd
     cmp al, 'A'
-    jb .cp
+    jb LowerCopy
     cmp al, 'Z'
-    ja .cp
+    ja LowerCopy
     add al, 32
-.cp:
+LowerCopy:
     mov [rdi], al
     inc rdi
     inc rsi
-    jmp .ll
+    jmp LowerLoop
 
-.ld:
+LowerEnd:
     mov byte [rdi], 10
     inc rdi
     mov rdx, rdi
