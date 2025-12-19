@@ -22,10 +22,11 @@ ReadAll:
     mov rsi, input
     mov rdx, 4096
     syscall
+
     test rax, rax
     jz Exit
 
-    mov rbx, 0
+    mov rbx, 0 
     mov r12, rax
 
 ParseLoop:
@@ -34,6 +35,9 @@ ParseLoop:
 
     mov rdi, line
 LineCopy:
+    cmp rbx, r12
+    jge LineDone
+
     mov al, [input + rbx]
     inc rbx
     cmp al, 10
@@ -42,27 +46,19 @@ LineCopy:
     inc rdi
     jmp LineCopy
 
+
 LineDone:
     mov byte [rdi], 0
 
-    ; exit
-    cmp dword [line], 'tixe'
+    cmp byte [line], 'e'
     je Exit
-
-    ; div
-    cmp dword [line], ' vid'
+    cmp byte [line], 'd'
     je DivMl
-
-    ; mul
-    cmp dword [line], ' lum'
+    cmp byte [line], 'm'
     je DivMl
-
-    ; trim
-    cmp dword [line], 'mirt'
+    cmp byte [line], 't'
     je Trim
-
-    ; lower
-    cmp dword [line], 'ewol'
+    cmp byte [line], 'l'
     je lower
 
     jmp ParseLoop
@@ -177,14 +173,13 @@ PrintNumber:
     sub rdx, rsi
     mov rax, 1
     mov rdi, 1
-    mov rsi, rsi
     syscall
     jmp ParseLoop
 
 Trim:
     mov rsi, line+5
     mov rdi, output
-    mov byte [seeSpace], 1
+    mov byte [seeSpace], 0
 
 .tl:
     mov al, [rsi]
@@ -192,17 +187,16 @@ Trim:
     je .td
 
     cmp al, ' '
-    je .space
+    je .sp
     cmp al, 9
-    je .space
-
+    je .sp
     mov byte [seeSpace], 0
     mov [rdi], al
     inc rdi
     inc rsi
     jmp .tl
 
-.space:
+.sp:
     cmp byte [seeSpace], 1
     je .sk
     mov byte [seeSpace], 1
