@@ -18,7 +18,7 @@ secondNum dq 0
 min dq 0
 
 section .bss
-num_array resq 200
+num_array resq 100000
 cmd resb 10
 
 section .text
@@ -30,6 +30,7 @@ main:
     mov rdi, nm_scanf_format
     lea rsi, [n]
     lea rdx, [m]
+    xor rax, rax
     call scanf
 
     jmp getArray
@@ -41,6 +42,7 @@ getArray:
 
     mov rdi, array_num_scanf
     lea rsi, [num_array + rax*8]
+    xor rax, rax
     call scanf
 
     inc qword [arrayC]
@@ -54,6 +56,7 @@ getCommand:
     lea rsi, [cmd]
     lea rdx, [firstNum]
     lea rcx, [secondNum]
+    xor rax, rax
     call scanf
 
     mov al, [cmd]
@@ -87,6 +90,7 @@ cMin:
 printMinCmd:
     mov rdi, printMin
     mov rsi, [min]
+    xor rax, rax
     call printf
 
     dec qword [m]
@@ -101,6 +105,7 @@ pLoop:
 
     mov rdi, printArray
     mov rsi, [num_array + r12*8]
+    xor rax, rax
     call printf
 
     inc r12
@@ -108,6 +113,7 @@ pLoop:
 
 printNL:
     mov rdi, printNewLine
+    xor rax, rax
     call printf
 
     dec qword [m]
@@ -173,4 +179,5 @@ rev_done:
 end:
     add rsp, 32
     pop r12
+    xor rax, rax
     ret
