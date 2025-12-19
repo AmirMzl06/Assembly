@@ -72,16 +72,16 @@ CheckCmd:
 DivMl:
     mov qword [A], 0
     mov qword [B], 0
-    mov rbx, 4
+    mov rsi, 4
     xor r12, r12
     xor r13, r13
 
 FindB:
-    movzx r15, byte [line + rbx]
+    movzx r15, byte [line + rsi]
     cmp r15, '-'
     jne .digit
     mov r12, 1
-    inc rbx
+    inc rsi
     jmp FindB
 
 .digit:
@@ -96,18 +96,18 @@ FindB:
     imul rax, 10
     add rax, r15
     mov [A], rax
-    inc rbx
+    inc rsi
     jmp FindB
 
 FindA:
-    inc rbx
+    inc rsi
 
 NextA:
-    movzx r15, byte [line + rbx]
+    movzx r15, byte [line + rsi]
     cmp r15, '-'
     jne .digitA
     mov r13, 1
-    inc rbx
+    inc rsi
     jmp NextA
 
 .digitA:
@@ -122,7 +122,7 @@ NextA:
     imul rax, 10
     add rax, r15
     mov [B], rax
-    inc rbx
+    inc rsi
     jmp NextA
 
 ApplySigns:
