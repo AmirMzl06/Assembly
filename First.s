@@ -37,7 +37,6 @@ ParseLoop:
 LineCopy:
     cmp rbx, r12
     jge LineDone
-
     mov al, [input + rbx]
     inc rbx
     cmp al, 10
@@ -46,12 +45,13 @@ LineCopy:
     inc rdi
     jmp LineCopy
 
-
 LineDone:
     mov byte [rdi], 0
 
-    cmp byte [line], 'e'
+    mov eax, dword [line]
+    cmp eax, 0x74697865
     je Exit
+
     cmp byte [line], 'd'
     je DivMl
     cmp byte [line], 'm'
@@ -132,6 +132,14 @@ DoDiv:
     mov rax, [A]
     cqo
     idiv qword [B]
+    test rdx, rdx
+    jz .done
+    mov r15, [A]
+    xor r15, [B]
+    test r15, r15
+    jns .done
+    dec rax
+.done:
     jmp PrintNumber
 
 PrintError:
@@ -185,7 +193,6 @@ Trim:
     mov al, [rsi]
     cmp al, 0
     je .td
-
     cmp al, ' '
     je .sp
     cmp al, 9
@@ -200,6 +207,8 @@ Trim:
     cmp byte [seeSpace], 1
     je .sk
     mov byte [seeSpace], 1
+    cmp rdi, output
+    je .sk
     mov byte [rdi], ' '
     inc rdi
 .sk:
@@ -207,6 +216,12 @@ Trim:
     jmp .tl
 
 .td:
+    cmp rdi, output
+    je .put_nl
+    cmp byte [rdi-1], ' '
+    jne .put_nl
+    dec rdi
+.put_nl:
     mov byte [rdi], 10
     inc rdi
     mov rdx, rdi
