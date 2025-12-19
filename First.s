@@ -1,281 +1,174 @@
 global main
+extern printf
+extern scanf
 
 section .data
-A dq 0
-B dq 0
-seeSpace db 0
+nm_scanf_format db "%lld %lld",0
+array_num_scanf db "%lld",0
+cmd_scanf_format db "%s %lld %lld",0
+printMin db "%lld",10,0
+printArray db "%lld ",0
+printNewLine db 10,0
 
-errMsg db "Error",10
-errLen equ 6
+n dq 0
+m dq 0
+arrayC dq 0
+firstNum dq 0
+secondNum dq 0
+min dq 0
 
 section .bss
-input   resb 4096
-line    resb 256
-output  resb 256
+num_array resq 200
+cmd resb 10
 
 section .text
 
 main:
-ReadAll:
-    mov rax, 0
-    mov rdi, 0
-    mov rsi, input
-    mov rdx, 4096
-    syscall
+    sub rsp, 32
 
-    test rax, rax
-    jz Exit
+    mov rdi, nm_scanf_format
+    lea rsi, [n]
+    lea rdx, [m]
+    call scanf
 
-    mov r12, rax
-    xor rbx, rbx
+    jmp getArray
 
-ParseLoop:
-    cmp rbx, r12
-    jge ReadAll
+getArray:
+    mov rax, [arrayC]
+    cmp rax, [n]
+    je getCommand
 
-    mov rdi, line
-    xor rcx, rcx
+    mov rdi, array_num_scanf
+    lea rsi, [num_array + rax*8]
+    call scanf
 
-LineCopy:
-    cmp rbx, r12
-    jge LineDone
-    mov al, [input + rbx]
-    inc rbx
-    cmp al, 10
-    je LineDone
-    mov [rdi + rcx], al
-    inc rcx
-    jmp LineCopy
+    inc qword [arrayC]
+    jmp getArray
 
-LineDone:
-    mov byte [rdi + rcx], 0
+getCommand:
+    cmp qword [m], 0
+    je end
 
-    cmp dword [line], 'exit'
-    je Exit
-    cmp byte [line + 4], 0
-    jne CheckCmd
-    cmp byte [line + 3], 't'
-    je Exit
+    mov rdi, cmd_scanf_format
+    lea rsi, [cmd]
+    lea rdx, [firstNum]
+    lea rcx, [secondNum]
+    call scanf
 
-CheckCmd:
-    mov al, [line]
-    cmp al, 'd'
-    je DivMl
+    mov al, [cmd]
     cmp al, 'm'
-    je DivMl
-    cmp al, 't'
-    je Trim
-    cmp al, 'l'
-    je lower
-    jmp ParseLoop
+    je minCmd
+    cmp al, 's'
+    je sort
+    cmp al, 'r'
+    je reserve
+    cmp al, 'p'
+    je print
 
-DivMl:
-    mov qword [A], 0
-    mov qword [B], 0
-    mov rsi, 4
-    xor r12, r12
-    xor r13, r13
+    jmp getCommand
 
-FindB:
-    movzx r15, byte [line + rsi]
-    cmp r15, '-'
-    jne .digit
-    mov r12, 1
-    inc rsi
-    jmp FindB
+minCmd:
+    mov r8, [firstNum]
+    mov rax, [num_array + r8*8]
+    mov [min], rax
 
-.digit:
-    cmp r15, ' '
-    je FindA
-    cmp r15, 9
-    je FindB
-    cmp r15, 0
-    je FindA
-    sub r15, '0'
-    mov rax, [A]
-    imul rax, 10
-    add rax, r15
-    mov [A], rax
-    inc rsi
-    jmp FindB
+cMin:
+    cmp r8, [secondNum]
+    je printMinCmd
 
-FindA:
-    inc rsi
+    inc r8
+    mov rax, [num_array + r8*8]
+    cmp rax, [min]
+    jge cMin
+    mov [min], rax
+    jmp cMin
 
-NextA:
-    movzx r15, byte [line + rsi]
-    cmp r15, '-'
-    jne .digitA
-    mov r13, 1
-    inc rsi
-    jmp NextA
+printMinCmd:
+    mov rdi, printMin
+    mov rsi, [min]
+    call printf
 
-.digitA:
-    cmp r15, 0
-    je ApplySigns
-    cmp r15, ' '
-    je NextA
-    cmp r15, 9
-    je NextA
-    sub r15, '0'
-    mov rax, [B]
-    imul rax, 10
-    add rax, r15
-    mov [B], rax
-    inc rsi
-    jmp NextA
+    dec qword [m]
+    jmp getCommand
 
-ApplySigns:
-    test r12, r12
-    jz .sb
-    neg qword [A]
-.sb:
-    test r13, r13
-    jz Calc
-    neg qword [B]
+print:
+    mov r8, [firstNum]
 
-Calc:
-    cmp byte [line], 'd'
-    je DoDiv
-    mov rax, [A]
-    imul rax, [B]
-    jmp PrintNumber
+pLoop:
+    cmp r8, [secondNum]
+    jg printNL
 
-DoDiv:
-    cmp qword [B], 0
-    je PrintError
-    mov rax, [A]
-    cqo
-    idiv qword [B]
-    test rdx, rdx
-    jz PrintNumber
-    mov rcx, [A]
-    xor rcx, [B]
-    jns PrintNumber
-    dec rax
-    jmp PrintNumber
+    mov rdi, printArray
+    mov rsi, [num_array + r8*8]
+    call printf
 
-PrintError:
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, errMsg
-    mov rdx, errLen
-    syscall
-    jmp ParseLoop
+    inc r8
+    jmp pLoop
 
-PrintNumber:
-    mov rbx, 10
-    lea rsi, [output + 255]
-    mov byte [rsi], 10
-    dec rsi
+printNL:
+    mov rdi, printNewLine
+    call printf
 
-    mov r8, rax
-    test rax, rax
-    jge .loop
-    neg rax
+    dec qword [m]
+    jmp getCommand
 
-.loop:
-    xor rdx, rdx
-    div rbx
-    add dl, '0'
-    mov [rsi], dl
-    dec rsi
-    test rax, rax
-    jnz .loop
+sort:
+    mov r8, [firstNum]
 
-    cmp r8, 0
-    jge .print
-    mov byte [rsi], '-'
-    dec rsi
+outer_loop:
+    cmp r8, [secondNum]
+    jge sort_done
 
-.print:
-    inc rsi
-    mov rdx, output + 256
-    sub rdx, rsi
-    mov rax, 1
-    mov rdi, 1
-    syscall
-    jmp ParseLoop
+    mov r9, r8
+    inc r9
 
-Trim:
-    mov rsi, line + 5
-    mov rdi, output
-    mov byte [seeSpace], 0
+inner_loop:
+    cmp r9, [secondNum]
+    jg next_i
 
-TrimLoop:
-    mov al, [rsi]
-    test al, al
-    jz TrimEnd
-    cmp al, ' '
-    je TrimSpace
-    cmp al, 9
-    je TrimSpace
-    mov byte [seeSpace], 0
-    mov [rdi], al
-    inc rdi
-    inc rsi
-    jmp TrimLoop
+    mov r10, [num_array + r8*8]
+    mov r11, [num_array + r9*8]
 
-TrimSpace:
-    cmp byte [seeSpace], 1
-    je TrimSkip
-    mov byte [seeSpace], 1
-    cmp rdi, output
-    je TrimSkip
-    mov byte [rdi], ' '
-    inc rdi
-TrimSkip:
-    inc rsi
-    jmp TrimLoop
+    cmp r10, r11
+    jle no_swap
 
-TrimEnd:
-    cmp rdi, output
-    je TrimNL
-    cmp byte [rdi - 1], ' '
-    jne TrimNL
-    dec rdi
-TrimNL:
-    mov byte [rdi], 10
-    inc rdi
-    mov rdx, rdi
-    sub rdx, output
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, output
-    syscall
-    jmp ParseLoop
+    mov [num_array + r8*8], r11
+    mov [num_array + r9*8], r10
 
-lower:
-    mov rsi, line + 6
-    mov rdi, output
+no_swap:
+    inc r9
+    jmp inner_loop
 
-LowerLoop:
-    mov al, [rsi]
-    test al, al
-    jz LowerEnd
-    cmp al, 'A'
-    jb LowerCopy
-    cmp al, 'Z'
-    ja LowerCopy
-    add al, 32
-LowerCopy:
-    mov [rdi], al
-    inc rdi
-    inc rsi
-    jmp LowerLoop
+next_i:
+    inc r8
+    jmp outer_loop
 
-LowerEnd:
-    mov byte [rdi], 10
-    inc rdi
-    mov rdx, rdi
-    sub rdx, output
-    mov rax, 1
-    mov rdi, 1
-    mov rsi, output
-    syscall
-    jmp ParseLoop
+sort_done:
+    dec qword [m]
+    jmp getCommand
 
-Exit:
-    mov rax, 60
-    xor rdi, rdi
-    syscall
+reserve:
+    mov r8, [firstNum]
+    mov r9, [secondNum]
+
+rev_loop:
+    cmp r8, r9
+    jge rev_done
+
+    mov r10, [num_array + r8*8]
+    mov r11, [num_array + r9*8]
+
+    mov [num_array + r8*8], r11
+    mov [num_array + r9*8], r10
+
+    inc r8
+    dec r9
+    jmp rev_loop
+
+rev_done:
+    dec qword [m]
+    jmp getCommand
+
+end:
+    add rsp, 32
+    ret
