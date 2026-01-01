@@ -3,181 +3,124 @@ extern printf
 extern scanf
 
 section .data
-nm_scanf_format db "%lld %lld",0
-array_num_scanf db "%lld",0
-cmd_scanf_format db "%s %lld %lld",0
-printMin db "%lld",10,0
-printArray db "%lld ",0
-printNewLine db 10,0
+scanf_format db "%lld %lld %lld",0
+printf_format db "%lld",0,10
+String db "%s",0,10
 
-n dq 0
-m dq 0
-arrayC dq 0
-firstNum dq 0
-secondNum dq 0
-min dq 0
+False db "FALSE",0
+True db "TRUE",0
+
+output: dq printf_format,printf_format,printf_format,printf_format,printf_format,String,String,String,String,String
+TorF: dq False,True
+
+result dq 0
+
+a1 dq 0
+a2 dq 0
+id dq 0
 
 section .bss
-num_array resq 100000
-cmd resb 10
+idArr resq 10
 
 section .text
-
 main:
-    push r12
-    sub rsp, 32
+    sub rsp, 24
 
-    mov rdi, nm_scanf_format
-    lea rsi, [n]
-    lea rdx, [m]
-    xor rax, rax
+    mov rdi, scanf_format
+    lea rsi,[rsp] ;id 
+    lea rdx ,[rsp+8] ;a1
+    lea rcx,[rsp+16] ;a2
     call scanf
 
-    jmp getArray
+    mov [a1],[rsp+8]
+    mov [a2],[rsp+16]
+    mov [id],[rsp]
 
-getArray:
-    mov rax, [arrayC]
-    cmp rax, [n]
-    je getCommand
+    mov r9,[rsp]
+    mov qword [idArr + r9*8], 1
 
-    mov rdi, array_num_scanf
-    lea rsi, [num_array + rax*8]
-    xor rax, rax
-    call scanf
+    ;0
+    mov rax,[a1]
+    or rax,[a2]
+    imul rax, qword[idArr+0]
+    add qword[result],rax
 
-    inc qword [arrayC]
-    jmp getArray
+    ;1
+    mov rax,[a1]
+    and rax,[a2]
+    imul rax, qword[idArr+8]
+    add qword[result],rax
 
-getCommand:
-    cmp qword [m], 0
-    je end
+    ;2
+    mov rax,[a1]
+    add rax,[a2]
+    imul rax, qword[idArr+16]
+    add qword[result],rax
 
-    mov rdi, cmd_scanf_format
-    lea rsi, [cmd]
-    lea rdx, [firstNum]
-    lea rcx, [secondNum]
-    xor rax, rax
-    call scanf
+    ;3
+    mov rax,[a1]
+    imul rax,[a2]
+    imul rax, qword[idArr+24]
+    add qword[result],rax
 
-    mov al, [cmd]
-    cmp al, 'm'
-    je minCmd
-    cmp al, 's'
-    je sort
-    cmp al, 'r'
-    je reserve
-    cmp al, 'p'
-    je print
+    ;4
+    mov rax,[a1]
+    mov rbx,[a2]
+    mov rdx,0
+    imul rax, rbx
+    mov rax, rdx
+    imul rax, qword[idArr+32]
+    add qword[result],rax
 
-    jmp getCommand
+    ;5
+    mov rax,[a1]
+    mov rbx,[a2]
+    cmp rax, rbx
+    setg al
+    movzx rax, al
+    imul rax, qword[idArr+40]
+    add qword[result],rax
 
-minCmd:
-    mov r8, [firstNum]
-    mov rax, [num_array + r8*8]
-    mov [min], rax
+    ;6
+    mov rax,[a1]
+    mov rbx,[a2]
+    cmp rax, rbx
+    setge al
+    movzx rax, al
+    imul rax, qword[idArr+48]
+    add qword[result],rax
 
-cMin:
-    cmp r8, [secondNum]
-    je printMinCmd
+    ;7
+    mov rax,[a1]
+    mov rbx,[a2]
+    cmp rax, rbx
+    setb al
+    movzx rax, al
+    imul rax, qword[idArr+56]
+    add qword[result],rax
 
-    inc r8
-    mov rax, [num_array + r8*8]
-    cmp rax, [min]
-    jge cMin
-    mov [min], rax
-    jmp cMin
+    ;8
+    mov rax,[a1]
+    mov rbx,[a2]
+    cmp rax, rbx
+    setbe al
+    movzx rax, al
+    imul rax, qword[idArr+64]
+    add qword[result],rax
 
-printMinCmd:
-    mov rdi, printMin
-    mov rsi, [min]
-    xor rax, rax
+    ;9
+    mov rax,[a1]
+    add rax,[a2]
+    seto al
+    movzx rax, al
+    imul rax, qword[idArr+72]
+    add qword[result],rax
+
+    mov rcx,[id]
+    mov rdi,[output+ rcx*8]
+    mov rsi,result
     call printf
 
-    dec qword [m]
-    jmp getCommand
-
-print:
-    mov r12, [firstNum]
-
-pLoop:
-    cmp r12, [secondNum]
-    jg printNL
-
-    mov rdi, printArray
-    mov rsi, [num_array + r12*8]
-    xor rax, rax
-    call printf
-
-    inc r12
-    jmp pLoop
-
-printNL:
-    mov rdi, printNewLine
-    xor rax, rax
-    call printf
-
-    dec qword [m]
-    jmp getCommand
-
-sort:
-    mov r8, [firstNum]
-
-outer_loop:
-    cmp r8, [secondNum]
-    jge sort_done
-
-    mov r9, r8
-    inc r9
-
-inner_loop:
-    cmp r9, [secondNum]
-    jg next_i
-
-    mov r10, [num_array + r8*8]
-    mov r11, [num_array + r9*8]
-
-    cmp r10, r11
-    jle no_swap
-
-    mov [num_array + r8*8], r11
-    mov [num_array + r9*8], r10
-
-no_swap:
-    inc r9
-    jmp inner_loop
-
-next_i:
-    inc r8
-    jmp outer_loop
-
-sort_done:
-    dec qword [m]
-    jmp getCommand
-
-reserve:
-    mov r8, [firstNum]
-    mov r9, [secondNum]
-
-rev_loop:
-    cmp r8, r9
-    jge rev_done
-
-    mov r10, [num_array + r8*8]
-    mov r11, [num_array + r9*8]
-
-    mov [num_array + r8*8], r11
-    mov [num_array + r9*8], r10
-
-    inc r8
-    dec r9
-    jmp rev_loop
-
-rev_done:
-    dec qword [m]
-    jmp getCommand
-
-end:
-    add rsp, 32
-    pop r12
-    xor rax, rax
+    add rsp, 24
+    mov rax,0
     ret
