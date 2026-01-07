@@ -1,20 +1,34 @@
 global main
-extern printf, scanf
+extern printf, scanf, strcmp
 
 section .data
-    n_input     db "%d",0
-    input       db "%lld",0
-    cmd_input1  db "%s %lld",0
-    cmd_input2  db "%s %lld %lld",0
-
-    output      db "%lld ",0
-    output2     db "%lld",10,0
-    newline     db 10,0
-
-    n           dq 0
-    counter     dq 0
+    n_input     db "%d", 0
+    input       db "%lf", 0
+    cmd_input   db "%s", 0
+    
+    exit_str    db "exit", 0
+    neg_str     db "neg", 0
+    pow_str     db "pow", 0
+    zero_str    db "zero", 0
+    round_str   db "round", 0
+    sorta_str   db "sorta", 0
+    sortd_str   db "sortd", 0
+    maxc_str    db "maxc", 0
+    lowa_str    db "lowa", 0
+    print_str   db "print", 0
+    max_str     db "max", 0
+    min_str     db "min", 0
+    low_str     db "low", 0
+    high_str    db "high", 0
+    
+    output      db "%.3f ", 0
+    output2     db "%.3f", 10, 0
+    newline     db 10, 0
+    
+    abs_mask    dq 0x7FFFFFFFFFFFFFFF
 
 section .bss
+    n           resq 1
     array       resq 100
     cmd         resb 16
     idx1        resq 1
@@ -22,226 +36,294 @@ section .bss
 
 section .text
 main:
-    sub rsp, 40
+    sub rsp, 8
+    
     mov rdi, n_input
-    lea rsi, [n]
+    mov rsi, n
     xor eax, eax
     call scanf
 
-; ------------ Read numbers ------------
-get_number:
-    mov rax, [counter]
-    cmp rax, [n]
-    je get_command
+    mov rcx, [n]
+    mov rdi, array
+.get_number_loop:
+    push rcx
+    push rdi
+    mov rsi, rdi
     mov rdi, input
-    lea rsi, [array + rax*8]
     xor eax, eax
     call scanf
-    inc qword [counter]
-    jmp get_number
+    pop rdi
+    pop rcx
+    add rdi, 8
+    loop .get_number_loop
 
-; ------------ Read command ------------
-get_command:
-    mov rdi, cmd_input1
-    lea rsi, [cmd]
-    lea rdx, [idx1]
+.get_command:
+    mov rdi, cmd_input
+    mov rsi, cmd
+    xor eax, eax
+    call scanf
+    
+    mov rdi, cmd
+    
+    mov rsi, exit_str
+    call strcmp
+    test rax, rax
+    jz .do_exit
+    
+    mov rsi, neg_str
+    call strcmp
+    test rax, rax
+    jz .read_one_and_dispatch
+    
+    mov rsi, pow_str
+    call strcmp
+    test rax, rax
+    jz .read_one_and_dispatch
+    
+    mov rsi, zero_str
+    call strcmp
+    test rax, rax
+    jz .read_one_and_dispatch
+    
+    mov rsi, round_str
+    call strcmp
+    test rax, rax
+    jz .read_one_and_dispatch
+
+.read_two_and_dispatch:
+    mov rdi, n_input
+    mov rsi, idx1
+    xor eax, eax
+    call scanf
+    
+    mov rdi, n_input
+    mov rsi, idx2
+    xor eax, eax
+    call scanf
+    jmp .dispatch
+
+.read_one_and_dispatch:
+    mov rdi, n_input
+    mov rsi, idx1
     xor eax, eax
     call scanf
 
-    ; بررسی حرف اول دستور
-    mov al, byte [cmd]
-    cmp al, 'e'
-    je do_exit
-    cmp al, 'n'
-    je do_neg
-    cmp al, 'p'
-    je do_pow
-    cmp al, 'z'
-    je do_zero
-    cmp al, 'r'
-    je do_round
-    cmp al, 's'
-    je check_sort
-    cmp al, 'm'
-    je check_maxmin
-    cmp al, 'l'
-    je check_low
-    cmp al, 'h'
-    je do_high
-    cmp al, 'p'
-    je do_print
-    jmp get_command
+.dispatch:
+    mov rdi, cmd
+    
+    mov rsi, neg_str
+    call strcmp
+    test rax, rax
+    jz .do_neg
+    
+    mov rsi, pow_str
+    call strcmp
+    test rax, rax
+    jz .do_pow
+    
+    mov rsi, zero_str
+    call strcmp
+    test rax, rax
+    jz .do_zero
+    
+    mov rsi, round_str
+    call strcmp
+    test rax, rax
+    jz .do_round
+    
+    mov rsi, sorta_str
+    call strcmp
+    test rax, rax
+    jz .do_sorta
+    
+    mov rsi, sortd_str
+    call strcmp
+    test rax, rax
+    jz .do_sortd
+    
+    mov rsi, maxc_str
+    call strcmp
+    test rax, rax
+    jz .do_maxc
+    
+    mov rsi, lowa_str
+    call strcmp
+    test rax, rax
+    jz .do_lowa
+    
+    mov rsi, print_str
+    call strcmp
+    test rax, rax
+    jz .do_print
+    
+    mov rsi, max_str
+    call strcmp
+    test rax, rax
+    jz .do_max
+    
+    mov rsi, min_str
+    call strcmp
+    test rax, rax
+    jz .do_min
+    
+    mov rsi, low_str
+    call strcmp
+    test rax, rax
+    jz .do_low
+    
+    mov rsi, high_str
+    call strcmp
+    test rax, rax
+    jz .do_high
+    
+    jmp .get_command
 
-; ------------ Commands ------------
-do_exit:
-    add rsp, 40
+.do_exit:
+    add rsp, 8
     xor eax, eax
     ret
 
-do_neg:
+.do_neg:
     mov rdx, [idx1]
-    mov rax, [array + rdx*8]
-    neg rax
-    mov [array + rdx*8], rax
-    jmp get_command
+    movsd xmm0, [array + rdx*8]
+    movq xmm1, [abs_mask]
+    xorpd xmm0, xmm1
+    movsd [array + rdx*8], xmm0
+    jmp .get_command
 
-do_pow:
+.do_pow:
     mov rdx, [idx1]
-    mov rax, [array + rdx*8]
-    imul rax, rax
-    mov [array + rdx*8], rax
-    jmp get_command
+    movsd xmm0, [array + rdx*8]
+    mulsd xmm0, xmm0
+    movsd [array + rdx*8], xmm0
+    jmp .get_command
 
-do_zero:
+.do_zero:
     mov rdx, [idx1]
-    mov qword [array + rdx*8], 0
-    jmp get_command
+    pxor xmm0, xmm0
+    movsd [array + rdx*8], xmm0
+    jmp .get_command
 
-do_round:
+.do_round:
     mov rdx, [idx1]
-    mov rax, [array + rdx*8]
-    mov [array + rdx*8], rax
-    jmp get_command
+    movsd xmm0, [array + rdx*8]
+    roundsd xmm0, xmm0, 0
+    movsd [array + rdx*8], xmm0
+    jmp .get_command
 
-check_sort:
-    mov al, byte [cmd+4]
-    cmp al, 'a'
-    je do_sorta
-    cmp al, 'd'
-    je do_sortd
-    jmp get_command
-
-do_sorta:
+.do_sorta:
     mov r11, [idx1]
-    mov r12, [idx2]
-    inc r12
 .outerA:
+    mov r12, [idx2]
     cmp r11, r12
-    jge get_command
-    mov r13, r11
+    jge .get_command
     mov r14, r11
+    mov r13, r11
 .innerA:
-    inc r14
-    cmp r14, r12
-    jge .swapA
-    mov rax, [array + r14*8]
-    mov rbx, [array + r13*8]
-    cmp rbx, rax
+    inc r13
+    cmp r13, r12
+    jg .swapA
+    movsd xmm0, [array + r13*8]
+    movsd xmm1, [array + r14*8]
+    ucomisd xmm1, xmm0
     jbe .innerA
-    mov r13, r14
+    mov r14, r13
     jmp .innerA
 .swapA:
-    mov rax, [array + r11*8]
-    mov rbx, [array + r13*8]
-    mov [array + r11*8], rbx
-    mov [array + r13*8], rax
+    movsd xmm0, [array + r11*8]
+    movsd xmm1, [array + r14*8]
+    movsd [array + r11*8], xmm1
+    movsd [array + r14*8], xmm0
     inc r11
     jmp .outerA
 
-do_sortd:
+.do_sortd:
     mov r11, [idx1]
-    mov r12, [idx2]
-    inc r12
 .outerD:
+    mov r12, [idx2]
     cmp r11, r12
-    jge get_command
-    mov r13, r11
+    jge .get_command
     mov r14, r11
+    mov r13, r11
 .innerD:
-    inc r14
-    cmp r14, r12
-    jge .swapD
-    mov rax, [array + r14*8]
-    mov rbx, [array + r13*8]
-    cmp rbx, rax
-    jle .innerD
-    mov r13, r14
+    inc r13
+    cmp r13, r12
+    jg .swapD
+    movsd xmm0, [array + r13*8]
+    movsd xmm1, [array + r14*8]
+    ucomisd xmm1, xmm0
+    jae .innerD
+    mov r14, r13
     jmp .innerD
 .swapD:
-    mov rax, [array + r11*8]
-    mov rbx, [array + r13*8]
-    mov [array + r11*8], rbx
-    mov [array + r13*8], rax
+    movsd xmm0, [array + r11*8]
+    movsd xmm1, [array + r14*8]
+    movsd [array + r11*8], xmm1
+    movsd [array + r14*8], xmm0
     inc r11
     jmp .outerD
-
-check_maxmin:
+    
+.do_maxc:
     mov r11, [idx1]
     mov r12, [idx2]
-    mov r15, [array + r11*8]
-.findMax:
+    movsd xmm0, [array + r11*8]
+.findMaxC:
     inc r11
     cmp r11, r12
-    jg .printMax
-    mov rax, [array + r11*8]
-    cmp r15, rax
-    jge .findMax
-    mov r15, rax
-    jmp .findMax
-.printMax:
-    mov rdi, output2
-    mov rsi, r15
-    xor eax, eax
-    call printf
-    jmp get_command
+    jge .fillMaxC
+    movsd xmm1, [array + r11*8]
+    ucomisd xmm0, xmm1
+    jae .findMaxC
+    movsd xmm0, xmm1
+    jmp .findMaxC
+.fillMaxC:
+    mov r11, [idx1]
+.fillLoopC:
+    mov r12, [idx2]
+    cmp r11, r12
+    jg .get_command
+    movsd [array + r11*8], xmm0
+    inc r11
+    jmp .fillLoopC
 
-check_low:
-    ; low / lowa -> کمینه‌ها
+.do_lowa:
     mov r11, [idx1]
     mov r12, [idx2]
-    mov r15, [array + r11*8]
-.findLow:
+    movsd xmm0, [array + r11*8]
+    movsd xmm1, xmm0
+    andpd xmm1, [abs_mask]
+.findLowa:
     inc r11
     cmp r11, r12
-    jg .printLow
-    mov rax, [array + r11*8]
-    cmp rax, r15
-    jge .findLow
-    mov r15, rax
-    jmp .findLow
-.printLow:
-    mov rdi, output2
-    mov rsi, r15
-    xor eax, eax
-    call printf
-    jmp get_command
-
-do_high:
-    ; high -> بزرگترین قدر مطلق
+    jg .fillLowa
+    movsd xmm2, [array + r11*8]
+    movsd xmm3, xmm2
+    andpd xmm3, [abs_mask]
+    ucomisd xmm1, xmm3
+    jbe .findLowa
+    movsd xmm1, xmm3
+    movsd xmm0, xmm2
+    jmp .findLowa
+.fillLowa:
     mov r11, [idx1]
+.fillLoopLowa:
     mov r12, [idx2]
-    mov rax, [array + r11*8]
-    mov r15, rax
-.findHigh:
-    inc r11
     cmp r11, r12
-    jg .printHigh
-    mov rax, [array + r11*8]
-    mov rbx, rax
-    test rbx, rbx
-    jns .positive
-    neg rbx
-.positive:
-    cmp rbx, r15
-    jle .findHigh
-    mov r15, rax
-    jmp .findHigh
-.printHigh:
-    mov rdi, output2
-    mov rsi, r15
-    xor eax, eax
-    call printf
-    jmp get_command
+    jg .get_command
+    movsd [array + r11*8], xmm0
+    inc r11
+    jmp .fillLoopLowa
 
-do_print:
+.do_print:
     mov r11, [idx1]
     mov r12, [idx2]
 .print_loop:
+    inc r12
     cmp r11, r12
-    jg .print_newline
+    jge .print_newline
+    movsd xmm0, [array + r11*8]
     mov rdi, output
-    mov rsi, [array + r11*8]
-    xor eax, eax
+    mov eax, 1
     call printf
     inc r11
     jmp .print_loop
@@ -249,4 +331,76 @@ do_print:
     mov rdi, newline
     xor eax, eax
     call printf
-    jmp get_command
+    jmp .get_command
+
+.do_max:
+    mov r11, [idx1]
+    mov r12, [idx2]
+    movsd xmm0, [array + r11*8]
+.max_loop:
+    inc r11
+    cmp r11, r12
+    jg .print_val
+    movsd xmm1, [array + r11*8]
+    ucomisd xmm0, xmm1
+    jae .max_loop
+    movsd xmm0, xmm1
+    jmp .max_loop
+
+.do_min:
+    mov r11, [idx1]
+    mov r12, [idx2]
+    movsd xmm0, [array + r11*8]
+.min_loop:
+    inc r11
+    cmp r11, r12
+    jg .print_val
+    movsd xmm1, [array + r11*8]
+    ucomisd xmm0, xmm1
+    jbe .min_loop
+    movsd xmm0, xmm1
+    jmp .min_loop
+
+.do_low:
+    mov r11, [idx1]
+    mov r12, [idx2]
+    movsd xmm0, [array + r11*8]
+    movsd xmm1, xmm0
+    andpd xmm1, [abs_mask]
+.low_loop:
+    inc r11
+    cmp r11, r12
+    jg .print_val
+    movsd xmm2, [array + r11*8]
+    movsd xmm3, xmm2
+    andpd xmm3, [abs_mask]
+    ucomisd xmm1, xmm3
+    jbe .low_loop
+    movsd xmm1, xmm3
+    movsd xmm0, xmm2
+    jmp .low_loop
+
+.do_high:
+    mov r11, [idx1]
+    mov r12, [idx2]
+    movsd xmm0, [array + r11*8]
+    movsd xmm1, xmm0
+    andpd xmm1, [abs_mask]
+.high_loop:
+    inc r11
+    cmp r11, r12
+    jg .print_val
+    movsd xmm2, [array + r11*8]
+    movsd xmm3, xmm2
+    andpd xmm3, [abs_mask]
+    ucomisd xmm1, xmm3
+    jae .high_loop
+    movsd xmm1, xmm3
+    movsd xmm0, xmm2
+    jmp .high_loop
+
+.print_val:
+    mov rdi, output2
+    mov eax, 1
+    call printf
+    jmp .get_command
