@@ -6,15 +6,10 @@ section .data
     n_input     db "%d", 0
     input       db "%lf", 0
     cmd_input   db "%s", 0
-
-    output      db "%.3lf ", 0
-    output2     db "%.3lf", 10, 0
+    output      db "%.3f ", 0
+    output2     db "%.3f", 10, 0
     newline     db 10, 0
-
     abs_mask    dq 0x7FFFFFFFFFFFFFFF
-
-    n           dq 0
-    counter     dq 0
 
 section .bss
     array       resq 100
@@ -25,7 +20,6 @@ section .bss
 section .text
 main:
     sub rsp, 40
-
     mov rdi, n_input
     lea rsi, [n]
     xor eax, eax
@@ -35,15 +29,12 @@ get_number:
     mov rax, [counter]
     cmp rax, [n]
     je getCommand
-
     mov rdi, input
     lea rsi, [array + rax*8]
     xor eax, eax
     call scanf
-
     inc qword [counter]
     jmp get_number
-
 
 getCommand:
     mov rdi, cmd_input
@@ -52,57 +43,50 @@ getCommand:
     call scanf
 
     mov al, [cmd]
-
     cmp al, 'e'
     je .exit
-
     cmp al, 'n'
     je .neg
-
     cmp al, 'p'
     je .pow_or_print
-
     cmp al, 'z'
     je .zero
-
     cmp al, 'r'
     je .round
-
     cmp al, 's'
     je .sort
-
     cmp al, 'm'
     je .max_group
-
     cmp al, 'l'
     je .low_group
-
     cmp al, 'h'
     je .high
-
     jmp getCommand
 
-
+; --- FIXED HELPER FUNCTIONS ---
 .read_one:
+    sub rsp, 8          ; Align stack to 16-byte boundary
     mov rdi, n_input
     lea rsi, [idx1]
     xor eax, eax
     call scanf
+    add rsp, 8          ; Restore stack pointer
     ret
 
 .read_two:
+    sub rsp, 8          ; Align stack to 16-byte boundary
     mov rdi, n_input
     lea rsi, [idx1]
     xor eax, eax
     call scanf
-
     mov rdi, n_input
     lea rsi, [idx2]
     xor eax, eax
     call scanf
+    add rsp, 8          ; Restore stack pointer
     ret
 
-
+; --- DISPATCH LOGIC ---
 .pow_or_print:
     mov al, [cmd+1]
     cmp al, 'o'
@@ -122,18 +106,14 @@ getCommand:
 
 .max_group:
     call .read_two
-    mov al, [cmd+1]
-    cmp al, 'a'
-    je .max_or_maxc
-    cmp al, 'i'
-    je .min
-    jmp getCommand
-
-.max_or_maxc:
     mov al, [cmd+3]
+    cmp al, 0
+    je .max
     cmp al, 'c'
     je .maxc
-    jmp .max
+    cmp al, 0
+    ja .min ; min starts with 'i' but max doesn't, so if not maxc or max, it is min
+    jmp .min
 
 .low_group:
     call .read_two
@@ -142,7 +122,7 @@ getCommand:
     je .lowa
     jmp .low
 
-
+; --- COMMAND IMPLEMENTATIONS ---
 .exit:
     add rsp, 40
     xor eax, eax
@@ -152,7 +132,8 @@ getCommand:
     call .read_one
     mov rdx, [idx1]
     movsd xmm0, [array + rdx*8]
-    movq xmm1, 0x8000000000000000
+    mov rax, 0x8000000000000000
+    movq xmm1, rax
     xorpd xmm0, xmm1
     movsd [array + rdx*8], xmm0
     jmp getCommand
@@ -191,7 +172,7 @@ getCommand:
 .innerA:
     inc r13
     cmp r13, r12
-    jge .swapA
+    jg .swapA
     movsd xmm0, [array + r13*8]
     movsd xmm1, [array + r14*8]
     ucomisd xmm1, xmm0
@@ -217,7 +198,7 @@ getCommand:
 .innerD:
     inc r13
     cmp r13, r12
-    jge .swapD
+    jg .swapD
     movsd xmm0, [array + r13*8]
     movsd xmm1, [array + r14*8]
     ucomisd xmm1, xmm0
@@ -239,7 +220,7 @@ getCommand:
 .findMax:
     inc r11
     cmp r11, r12
-    jg .fillMax
+    jge .fillMax
     movsd xmm1, [array + r11*8]
     ucomisd xmm0, xmm1
     jae .findMax
@@ -287,7 +268,7 @@ getCommand:
     mov r12, [idx2]
 .printLoop:
     cmp r11, r12
-    jg .nl
+    jge .nl
     movsd xmm0, [array + r11*8]
     mov rdi, output
     mov eax, 1
@@ -348,6 +329,7 @@ getCommand:
     jmp .low_loop
 
 .high:
+    call .read_two      ; FIXED: This was missing
     mov r11, [idx1]
     mov r12, [idx2]
     movsd xmm0, [array + r11*8]
