@@ -5,7 +5,7 @@ section .data
     n_input     db "%d", 0
     input       db "%lf", 0
     cmd_input   db "%s", 0
-
+    
     exit_str    db "exit", 0
     neg_str     db "neg", 0
     pow_str     db "pow", 0
@@ -20,14 +20,14 @@ section .data
     min_str     db "min", 0
     low_str     db "low", 0
     high_str    db "high", 0
-
+    
     output      db "%.3f ", 0
     output2     db "%.3f", 10, 0
     newline     db 10, 0
-
+    
+    align 16 
     abs_mask    dq 0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF
     neg_mask    dq 0x8000000000000000
-
 section .bss
     n           resq 1
     array       resq 100
