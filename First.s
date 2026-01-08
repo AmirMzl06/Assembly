@@ -25,7 +25,7 @@ section .data
     output2     db "%.3f", 10, 0
     newline     db 10, 0
 
-    abs_mask    dq 0x7FFFFFFFFFFFFFFF,0x7FFFFFFFFFFFFFFF
+    abs_mask    dq 0x7FFFFFFFFFFFFFFF, 0x7FFFFFFFFFFFFFFF
     neg_mask    dq 0x8000000000000000
 
 section .bss
@@ -47,6 +47,8 @@ main:
     mov rcx, [n]
     mov rdi, array
 .get_number_loop:
+    test rcx, rcx
+    jz .get_command
     push rcx
     push rdi
     mov rsi, rdi
@@ -56,7 +58,8 @@ main:
     pop rdi
     pop rcx
     add rdi, 8
-    loop .get_number_loop
+    dec rcx
+    jmp .get_number_loop
 
 .get_command:
     mov rdi, cmd_input
@@ -74,36 +77,35 @@ main:
     mov rsi, neg_str
     call strcmp
     test rax, rax
-    jz .read_one_and_dispatch
+    jz .read_one
 
     mov rsi, pow_str
     call strcmp
     test rax, rax
-    jz .read_one_and_dispatch
+    jz .read_one
 
     mov rsi, zero_str
     call strcmp
     test rax, rax
-    jz .read_one_and_dispatch
+    jz .read_one
 
     mov rsi, round_str
     call strcmp
     test rax, rax
-    jz .read_one_and_dispatch
+    jz .read_one
 
-.read_two_and_dispatch:
+.read_two:
     mov rdi, n_input
     mov rsi, idx1
     xor eax, eax
     call scanf
-
     mov rdi, n_input
     mov rsi, idx2
     xor eax, eax
     call scanf
     jmp .dispatch
 
-.read_one_and_dispatch:
+.read_one:
     mov rdi, n_input
     mov rsi, idx1
     xor eax, eax
@@ -132,40 +134,10 @@ main:
     test rax, rax
     jz .do_round
 
-    mov rsi, sorta_str
-    call strcmp
-    test rax, rax
-    jz .do_sorta
-
-    mov rsi, sortd_str
-    call strcmp
-    test rax, rax
-    jz .do_sortd
-
-    mov rsi, maxc_str
-    call strcmp
-    test rax, rax
-    jz .do_maxc
-
     mov rsi, lowa_str
     call strcmp
     test rax, rax
     jz .do_lowa
-
-    mov rsi, print_str
-    call strcmp
-    test rax, rax
-    jz .do_print
-
-    mov rsi, max_str
-    call strcmp
-    test rax, rax
-    jz .do_max
-
-    mov rsi, min_str
-    call strcmp
-    test rax, rax
-    jz .do_min
 
     mov rsi, low_str
     call strcmp
@@ -176,6 +148,11 @@ main:
     call strcmp
     test rax, rax
     jz .do_high
+
+    mov rsi, print_str
+    call strcmp
+    test rax, rax
+    jz .do_print
 
     jmp .get_command
 
@@ -217,42 +194,41 @@ main:
     mov r12, [idx2]
     movsd xmm0, [array + r11*8]
     movsd xmm1, xmm0
-    andupd xmm1, [abs_mask]
-.findLowa:
+    andpd xmm1, [abs_mask]
+.lowa_loop:
     inc r11
     cmp r11, r12
-    jg .fillLowa
+    jg .lowa_fill
     movsd xmm2, [array + r11*8]
     movsd xmm3, xmm2
-    andupd xmm3, [abs_mask]
+    andpd xmm3, [abs_mask]
     ucomisd xmm1, xmm3
-    jbe .findLowa
+    jbe .lowa_loop
     movsd xmm1, xmm3
     movsd xmm0, xmm2
-    jmp .findLowa
-.fillLowa:
+    jmp .lowa_loop
+.lowa_fill:
     mov r11, [idx1]
-.fillLoopLowa:
-    mov r12, [idx2]
+.lowa_fill_loop:
     cmp r11, r12
     jg .get_command
     movsd [array + r11*8], xmm0
     inc r11
-    jmp .fillLoopLowa
+    jmp .lowa_fill_loop
 
 .do_low:
     mov r11, [idx1]
     mov r12, [idx2]
     movsd xmm0, [array + r11*8]
     movsd xmm1, xmm0
-    andupd xmm1, [abs_mask]
+    andpd xmm1, [abs_mask]
 .low_loop:
     inc r11
     cmp r11, r12
     jg .print_val
     movsd xmm2, [array + r11*8]
     movsd xmm3, xmm2
-    andupd xmm3, [abs_mask]
+    andpd xmm3, [abs_mask]
     ucomisd xmm1, xmm3
     jbe .low_loop
     movsd xmm1, xmm3
@@ -264,14 +240,14 @@ main:
     mov r12, [idx2]
     movsd xmm0, [array + r11*8]
     movsd xmm1, xmm0
-    andupd xmm1, [abs_mask]
+    andpd xmm1, [abs_mask]
 .high_loop:
     inc r11
     cmp r11, r12
     jg .print_val
     movsd xmm2, [array + r11*8]
     movsd xmm3, xmm2
-    andupd xmm3, [abs_mask]
+    andpd xmm3, [abs_mask]
     ucomisd xmm1, xmm3
     jae .high_loop
     movsd xmm1, xmm3
@@ -289,14 +265,14 @@ main:
     mov r12, [idx2]
 .print_loop:
     cmp rbx, r12
-    jg .print_newline
+    jg .print_nl
     movsd xmm0, [array + rbx*8]
     mov rdi, output
     mov eax, 1
     call printf
     inc rbx
     jmp .print_loop
-.print_newline:
+.print_nl:
     mov rdi, newline
     xor eax, eax
     call printf
