@@ -1,107 +1,18 @@
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.9456                   
-8          32.00              KB 1.9730                   
-16         64.00              KB 6.6331                   
-32         128.00             KB 6.7462                   
-64         256.00             KB 7.8045                   
-128        512.00             KB 14.1170                  
-256        1.00               MB 22.0143                  
-512        2.00               MB 22.3641                  
-1024       4.00               MB 22.8891                  
-2048       8.00               MB 48.7483                  
-4096       16.00              MB 70.6245                  
-8192       32.00              MB 122.0322                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.9790                   
-8          32.00              KB 1.9705                   
-16         64.00              KB 6.4659                   
-32         128.00             KB 6.6587                   
-64         256.00             KB 7.8886                   
-128        512.00             KB 12.9963                  
-256        1.00               MB 23.5717                  
-512        2.00               MB 22.5807                  
-1024       4.00               MB 23.2197                  
-2048       8.00               MB 56.1898                  
-4096       16.00              MB 73.1551                  
-8192       32.00              MB 115.4933                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.7716                   
-8          32.00              KB 1.7999                   
-16         64.00              KB 6.6211                   
-32         128.00             KB 6.7886                   
-64         256.00             KB 6.8358                   
-128        512.00             KB 14.7750                  
-256        1.00               MB 23.2616                  
-512        2.00               MB 22.6110                  
-1024       4.00               MB 21.9397                  
-2048       8.00               MB 23.7000                  
-4096       16.00              MB 45.7270                  
-8192       32.00              MB 116.6294                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.6919                   
-8          32.00              KB 1.9043                   
-16         64.00              KB 6.8122                   
-32         128.00             KB 7.3910                   
-64         256.00             KB 7.9991                   
-128        512.00             KB 14.4810                  
-256        1.00               MB 21.3049                  
-512        2.00               MB 22.1834                  
-1024       4.00               MB 23.1043                  
-2048       8.00               MB 22.6914                  
-4096       16.00              MB 41.9441                  
-8192       32.00              MB 117.1749                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.8375                   
-8          32.00              KB 1.8272                   
-16         64.00              KB 6.5692                   
-32         128.00             KB 6.5637                   
-64         256.00             KB 6.5048                   
-128        512.00             KB 14.1936                  
-256        1.00               MB 21.9206                  
-512        2.00               MB 22.5213                  
-1024       4.00               MB 21.3409                  
-2048       8.00               MB 23.9005                  
-4096       16.00              MB 53.5919                  
-8192       32.00              MB 117.8757                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.7588                   
-8          32.00              KB 1.8078                   
-16         64.00              KB 6.7268                   
-32         128.00             KB 6.6623                   
-64         256.00             KB 7.1358                   
-128        512.00             KB 13.7781                  
-256        1.00               MB 21.9752                  
-512        2.00               MB 22.4859                  
-1024       4.00               MB 23.7261                  
-2048       8.00               MB 22.7853                  
-4096       16.00              MB 48.7293                  
-8192       32.00              MB 123.6423                 
-sam16mzl@debian:~/CA_project$ ./tlb_test 
-Pages      Working Set        Latency (ns/access)      
----------------------------------------------------------------
-4          16.00              KB 1.9067                   
-8          32.00              KB 1.8211                   
-16         64.00              KB 6.7076                   
-32         128.00             KB 6.6615                   
-64         256.00             KB 6.8819                   
-128        512.00             KB 14.5396                  
-256        1.00               MB 22.0906                  
-512        2.00               MB 21.9769                  
-1024       4.00               MB 25.9422                  
-2048       8.00               MB 31.5284                  
-4096       16.00              MB 42.7309                  
-8192       32.00              MB 113.5142                 
+                 
+sam16mzl@debian:~/CA_project$ chmod +x run_perf.sh
+./run_perf.sh
+Running perf measurements...
+Output directory: perf_results
+
+Skipping ./cache_size (not found or not executable)
+==> ./cache_line
+./run_perf.sh: line 41: perf: command not found
+sam16mzl@debian:~/CA_project$ ./run_perf.sh
+Running perf measurements...
+Output directory: perf_results
+
+Skipping ./cache_size (not found or not executable)
+==> ./cache_line
+./run_perf.sh: line 41: perf: command not found
 sam16mzl@debian:~/CA_project$ 
 
