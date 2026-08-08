@@ -1,14 +1,79 @@
-################################################################################
- CEBRA | full base R2 = 0.9359 | topJf K = 9 | topJfinv K = 9
- ACORN | full base R2 = 0.9792 | topJf K = 9 | topJfinv K = 9
+Neuron 2
+----------------
+session: M021519
+channel: 005
+cluster id: 2
+area: 11ml
+timestamps: 58330
 
-Reduced dataset results:
-CEBRA_topJf__CEBRA           | neurons=9   | base R2=-0.0282
-CEBRA_topJf__ACORN           | neurons=9   | base R2=-0.1827
-ACORN_topJf__CEBRA           | neurons=9   | base R2=0.9487
-ACORN_topJf__ACORN           | neurons=9   | base R2=0.9501
-CEBRA_topJfinv__CEBRA        | neurons=9   | base R2=0.6860
-CEBRA_topJfinv__ACORN        | neurons=9   | base R2=0.5984
-ACORN_topJfinv__CEBRA        | neurons=9   | base R2=0.7496
-ACORN_topJfinv__ACORN        | neurons=9   | base R2=0.7899
-Saved CSV to: outputs/Chewie_20160927_001_reduced_results.csv
+Neuron 5
+----------------
+session: M021519
+channel: 014
+cluster id: 2
+area: 11ml
+timestamps: 16533
+
+Neuron 7
+----------------
+session: M021519
+channel: 024
+cluster id: 2
+area: 11ml
+timestamps: 34020
+
+Neuron 10
+----------------
+session: M021519
+channel: 032
+cluster id: 5
+area: 11ml
+timestamps: 25089
+
+Neuron 23
+----------------
+session: M021519
+channel: 069
+cluster id: 1
+area: 12o
+timestamps: 96958
+
+Neuron 33
+----------------
+session: M021519
+channel: 116
+cluster id: 1
+area: AMG
+timestamps: 26467
+
+Neuron 37
+----------------
+session: M021519
+channel: 128
+cluster id: 1
+area: AMG
+timestamps: 50059
+
+Neuron 38
+----------------
+session: M021519
+channel: 129
+cluster id: 3
+area: AMG
+timestamps: 21066
+
+Neuron 40
+----------------
+session: M021519
+channel: 139
+cluster id: 3
+area: pu
+timestamps: 13996
+
+Neuron 40
+----------------
+session: M021519
+channel: 139
+cluster id: 3
+area: pu
+timestamps: 13996
