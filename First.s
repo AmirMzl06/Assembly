@@ -1,18 +1,11 @@
-Last login: Sun Aug 16 15:53:07 2026 from 128.179.253.32
-groups: cannot find name for group ID 30299
-mirzaei@haas034:~$ runai delete job mm8 -p upmwmathis-mirzaei
-Job mm8 deleted successfully.
-mirzaei@haas034:~$ runai submit --name mm8 \
-  --image registry.rcp.epfl.ch/upmwmathis-mirzaei/robust-cebra:v0.4 \
-  --gpu 1 --cpu 64 --memory 256Gi --node-pools h100 --large-shm \
-  --pvc home:/home/mirzaei \
-  --pvc upmwmathis-scratch:/data \
-  -e HOME=/home/mirzaei \
-  -p upmwmathis-mirzaei \
-  --attach --run-as-user \
-  --command -- bash -lc 'bash'
-Job mm8 submitted successfully.
-You can check the status of the job by running:
-	runai describe job mm8 -p upmwmathis-mirzaei
-could not find any job with the given name mm8
-mirzaei@haas034:~$ 
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ tmux new -s cebra
+[detached (from session cebra)]
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ tmux new -s multi
+[exited]
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ tmux ls
+cebra: 1 windows (created Sun Aug 16 14:27:14 2026)
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ tmux -t cebra
+tmux: unknown option -- t
+usage: tmux [-2CDlNuvV] [-c shell-command] [-f file] [-L socket-name]
+            [-S socket-path] [-T features] [command [flags]]
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ 
