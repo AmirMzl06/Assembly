@@ -1,20 +1,6 @@
-\If you don't see a command prompt, try pressing enter.
-I have no name!@mm8-0-0:/workspace$ export PYTHONNOUSERSITE=1
-I have no name!@mm8-0-0:/workspace$ python -c "import torch; print(torch.__file__, torch.__version__)"
-Traceback (most recent call last):
-  File "<string>", line 1, in <module>
-ModuleNotFoundError: No module named 'torch'
-I have no name!@mm8-0-0:/workspace$ ls ~/lm-cebra
-cat         handwritingBCI  macorn_multi.zip  speech_dataset
-corp-torch  llm             perich            submittable_robust_cebra
-data        macorn_cluster  poyo_org          test.log
-I have no name!@mm8-0-0:/workspace$ source ~/lm-cebra/.venv/bin/activate
-(.venv) I have no name!@mm8-0-0:/workspace$ which python
-python -c "import torch;print(torch.__file__)"
-/home/mirzaei/lm-cebra/.venv/bin/python
-/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/__init__.py
-(.venv) I have no name!@mm8-0-0:/workspace$ cd /home/mirzaei/sam/result/Aggregate
-(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ source ~/lm-cebra/.venv/bin/activate
+(.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ export USER=mirzaei
+export LOGNAME=mirzaei
+export HOME=/home/mirzaei
 (.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ python Multi_session.py
 /home/mirzaei/sam/result/Aggregate/CEBRA-main/cebra/helper.py:35: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
   import pkg_resources
@@ -75,32 +61,56 @@ Registered X010720 | neurons=37
 Registered X012521 | neurons=37
 Registered X120320 | neurons=58
 Registered X122319 | neurons=33
+CEBRA:   0%|                                                        | 0/3 [00:00<?, ?it/s]None
+None
+None
+CEBRA:  33%|███████████▋                       | 1/3 [00:01<00:03,  1.57s/it, loss=6.8819]None
+None
+None
+CEBRA:  33%|███████████▋                       | 1/3 [00:01<00:03,  1.57s/it, loss=6.8831]None
+None
+None
+CEBRA:  67%|███████████████████████▎           | 2/3 [00:02<00:01,  1.02s/it, loss=6.8831]
 Traceback (most recent call last):
   File "/home/mirzaei/sam/result/Aggregate/Multi_session.py", line 445, in <module>
     cebra_model = train_multisession_model(sessions, model_name="CEBRA", adversarial=False)
-  File "/home/mirzaei/sam/result/Aggregate/Multi_session.py", line 256, in train_multisession_model
-    optimizer = torch.optim.AdamW(model.parameters(), lr=LEARNING_RATE, betas=(0.9, 0.999), eps=1e-8, weight_decay=WEIGHT_DECAY)
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/optim/adamw.py", line 36, in __init__
-    super().__init__(
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/optim/adam.py", line 102, in __init__
-    super().__init__(params, defaults)
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/optim/optimizer.py", line 408, in __init__
-    self.add_param_group(cast(dict, param_group))
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_compile.py", line 47, in inner
-    import torch._dynamo
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_dynamo/__init__.py", line 13, in <module>
-    from . import (
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_dynamo/aot_compile.py", line 17, in <module>
-    from torch._dynamo.package import SystemInfo
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_dynamo/package.py", line 1173, in <module>
-    DynamoCache = DiskDynamoCache(os.path.join(cache_dir(), "dynamo"))
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_dynamo/package.py", line 1170, in cache_dir
-    return cache_dir()
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_inductor/runtime/cache_dir_utils.py", line 17, in cache_dir
-    os.environ["TORCHINDUCTOR_CACHE_DIR"] = cache_dir = default_cache_dir()
-  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/_inductor/runtime/cache_dir_utils.py", line 23, in default_cache_dir
-    sanitized_username = re.sub(r'[\\/:*?"<>|]', "_", getpass.getuser())
-  File "/usr/lib/python3.10/getpass.py", line 169, in getuser
-    return pwd.getpwuid(os.getuid())[0]
-KeyError: 'getpwuid(): uid not found: 270850'
+  File "/home/mirzaei/sam/result/Aggregate/Multi_session.py", line 274, in train_multisession_model
+    loss, _, _ = criterion(reference, positive, negative)
+  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1779, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/mirzaei/lm-cebra/.venv/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1790, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/mirzaei/sam/result/Aggregate/CEBRA-main/cebra/models/criterions.py", line 181, in forward
+    return infonce(pos_dist, neg_dist)
+RuntimeError: The following operation failed in the TorchScript interpreter.
+Traceback of TorchScript (most recent call last):
+RuntimeError: nvrtc: error: failed to open libnvrtc-builtins.so.13.0.
+  Make sure that libnvrtc-builtins.so.13.0 is installed correctly.
+nvrtc compilation failed: 
+
+#define NAN __int_as_float(0x7fffffff)
+#define POS_INFINITY __int_as_float(0x7f800000)
+#define NEG_INFINITY __int_as_float(0xff800000)
+
+
+template<typename T>
+__device__ T maximum(T a, T b) {
+  return isnan(a) ? a : (a > b ? a : b);
+}
+
+template<typename T>
+__device__ T minimum(T a, T b) {
+  return isnan(a) ? a : (a < b ? a : b);
+}
+
+extern "C" __global__
+void fused_sub_neg(float* tpos_dist_1, float* tv_, float* aten_neg) {
+{
+  float v = __ldg(tpos_dist_1 + (long long)(threadIdx.x) + 512ll * (long long)(blockIdx.x));
+  float v_1 = __ldg(tv_ + (long long)(threadIdx.x) + 512ll * (long long)(blockIdx.x));
+  aten_neg[(long long)(threadIdx.x) + 512ll * (long long)(blockIdx.x)] = 0.f - (v - v_1);
+}
+}
+
+
 (.venv) I have no name!@mm8-0-0:~/sam/result/Aggregate$ 
