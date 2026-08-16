@@ -1,6 +1,6 @@
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ 
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ which conda
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ ls /usr/bin | grep -E "gcc|clang|cc"
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ find /opt -name gcc 2>/dev/null | head
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ export TORCH_COMPILE_DISABLE=1
-I have no name!@mm8-final-0-0:~/sam/result/Aggregate$ 
+mirzaei@haas034:~$ docker --version
+Command 'docker' not found, but can be installed with:
+apt install docker.io      # version 29.1.3-0ubuntu3~24.04.2, or
+apt install podman-docker  # version 4.9.3+ds1-1ubuntu0.2
+Ask your administrator to install one of them.
+mirzaei@haas034:~$ 
