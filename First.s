@@ -1,11 +1,92 @@
-                                                                             
-mirzaei@haas034:~/sam/result/Aggregate$ cat adaptive_epsilon_C-CO12_8models.csv 
-run,norm,mode,status,r2_eval_mean,delta_r2_eval_vs_fixed,r2_train_mean,r2_eval_y0,r2_eval_y1,r2_eval_y2,r2_eval_y3,r2_eval_y4,r2_eval_y5,r2_train_y0,r2_train_y1,r2_train_y2,r2_train_y3,r2_train_y4,r2_train_y5,constant_eval_targets,epsilon_first,epsilon_last,epsilon_mean,epsilon_min_used,epsilon_max_used,epsilon_next,epsilon_cap,positive_distance_quantile,gain_mean,gain_last,gain_ema_last,decoder_last_train_mse,n_train_decoded,n_eval_decoded,encoder_seconds,decoder_seconds,total_seconds,error,epsilon_config,alpha_config,epsilon_max_config,started_utc,session,data_path,evaluation_split,seed,decoder_seed,device,architecture,latent_dim,encoder_hidden,encoder_batch_size,encoder_iterations,encoder_lr,temperature,conditional,time_offsets,pad_transform,decoder_epochs,decoder_hidden,decoder_dropout,decoder_lr,decoder_training,warmup_steps,pgd_steps,positive_q,positive_scale,positive_cap_scale,calibration_batches,gain_target,gain_ema_decay,gain_rate,gain_interval,gain_deadband,epsilon_floor,input_channels,n_train,n_eval,n_targets
-1,linf,fixed,ok,0.605061948299408,0.0,0.7161720395088196,0.6070106029510498,0.6515872478485107,0.7184097766876221,0.6895709037780762,0.5519009232521057,0.4118921756744385,0.6247014999389648,0.658454954624176,0.7433978915214539,0.7205463647842407,0.7941486835479736,0.7557830214500427,0,0.2,0.2,0.2,0.2,0.2,0.2,,,0.0727652988762691,0.06839990615844727,0.06416403607034485,552.4118041992188,18384,4543,104.03785821702331,2.1505551245063543,106.48235356155783,,0.2,0.04,,2026-09-20T17:11:33.457577+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-2,linf,positive,ok,0.5117166638374329,-0.0933452844619751,0.6162052750587463,0.43341368436813354,0.43209677934646606,0.7115107774734497,0.6475338935852051,0.4793495535850525,0.36639559268951416,0.43844830989837646,0.43138790130615234,0.7474074363708496,0.6770286560058594,0.7157526612281799,0.6872066259384155,0,2.0,2.0,2.0,2.0,2.0,2.0,,4.0,-0.17244336868154592,-0.2111353874206543,-0.1931804426849391,679.9442749023438,18384,4543,98.89614666812122,1.8221317026764154,100.8735381923616,,0.2,0.04,,2026-09-20T17:13:20.082836+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-3,linf,gain,ok,0.6796505451202393,0.0745885968208313,0.8023309707641602,0.7352868914604187,0.7662365436553955,0.7705338001251221,0.7345089912414551,0.600055456161499,0.4712814688682556,0.7533766627311707,0.7722523212432861,0.7950818538665771,0.7678415775299072,0.8759139776229858,0.8495191335678101,0,0.2,0.053569663800047476,0.062142057976949966,0.053569663800047476,0.2,0.053569663800047476,0.8,,0.05388201039412926,0.04676628112792969,0.04656379240475257,379.31103515625,18384,4543,97.11914878245443,1.7530620507895947,99.0209755860269,,0.2,0.04,,2026-09-20T17:15:01.073075+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-4,linf,hybrid,ok,0.5164764523506165,-0.0885854959487915,0.6184526681900024,0.41238313913345337,0.4030299186706543,0.7275210022926331,0.6533953547477722,0.505460262298584,0.3970692753791809,0.4195760488510132,0.3875555992126465,0.7626688480377197,0.6835002899169922,0.7362780570983887,0.721137285232544,0,2.0,4.0,3.8976636003340475,1.727675197062952,4.0,4.0,4.0,4.0,-0.17641942928577292,-0.22115707397460938,-0.1947576035577915,631.159423828125,18384,4543,99.6402316018939,1.8488988364115357,101.65209544450045,,0.2,0.04,,2026-09-20T17:16:40.213537+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-5,l2,fixed,ok,0.665241003036499,0.0,0.7991253733634949,0.7013852596282959,0.7092610597610474,0.7717546224594116,0.7317324876785278,0.6055849194526672,0.47172749042510986,0.7273733615875244,0.7396652698516846,0.7904027104377747,0.7687556743621826,0.898452877998352,0.8701021671295166,0,0.2,0.2,0.2,0.2,0.2,0.2,,,0.023328815493090398,0.02266407012939453,0.02249470722437883,349.9169616699219,18384,4543,96.54050270654261,1.6460672784596682,98.34349122922868,,0.2,0.04,,2026-09-20T17:18:21.986086+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-6,l2,positive,ok,-0.0003176132740918547,-0.6655586163105909,3.4868717193603516e-06,-0.0005918741226196289,-9.465217590332031e-05,-0.0009708404541015625,-0.00017249584197998047,-3.910064697265625e-05,-3.6716461181640625e-05,3.6954879760742188e-06,1.1205673217773438e-05,7.62939453125e-06,8.940696716308594e-07,-1.5497207641601562e-06,-9.5367431640625e-07,0,12.727922439575195,12.727922439575195,12.727922439575195,12.727922439575195,12.727922439575195,12.727922439575195,,25.45584487915039,0.0016851888853928138,8.58306884765625e-06,8.830101752681376e-06,1931.4603271484375,18384,4543,103.4912103805691,1.8011582577601075,105.43978722579777,,0.2,0.04,,2026-09-20T17:20:00.442259+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-7,l2,gain,ok,0.6778944134712219,0.0126534104347229,0.8046321868896484,0.7400655150413513,0.7371104955673218,0.7732548713684082,0.7365336418151855,0.6054966449737549,0.4749053120613098,0.7614997625350952,0.7526912689208984,0.7916321754455566,0.7660863399505615,0.8908422589302063,0.8650411367416382,0,0.2,0.6772709881798779,0.5839125709698548,0.2,0.6772709881798779,0.6772709881798779,0.8,,0.04616733370156124,0.046790122985839844,0.04674275685749481,352.27618408203125,18384,4543,101.93325078394264,1.807446918450296,103.89416568819433,,0.2,0.04,,2026-09-20T17:21:45.994459+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
-8,l2,hybrid,ok,-0.00029345354414545,-0.6655344565806445,1.043081283569336e-06,-0.0005475282669067383,-0.00010192394256591797,-0.0008790493011474609,-0.00015676021575927734,-4.0411949157714844e-05,-3.504753112792969e-05,5.960464477539062e-07,3.3974647521972656e-06,3.337860107421875e-06,-2.384185791015625e-07,-1.1920928955078125e-07,-7.152557373046875e-07,0,12.727922439575195,25.45584487915039,24.80458000030358,10.994857954497522,25.45584487915039,25.45584487915039,25.45584487915039,25.45584487915039,0.0017817926406860352,1.1444091796875e-05,1.1011966896756047e-05,1931.4539794921875,18384,4543,98.28995018079877,1.7492587361484766,100.19510744139552,,0.2,0.04,,2026-09-20T17:23:30.001418+00:00,C-CO12,/data/hossein/mm_project/perich_data_valid_final_raw/C-CO12.npz,validation,42,100042,cuda,offset10-model,64,64,512,3000,0.0003,1.0,time_delta,10,True,2500,64,0.4,0.001,full_batch_final_epoch,100,10,0.1,0.5,1.0,32,0.05,0.9,0.05,10,0.1,1e-06,86,18384,4543,6
+mirzaei@haas034:~$ mirzaei@haas034:~/sam/result/Aggregate/acorn-main$ cd ~/sam/result/Aggregate/acorn-main
+
+grep -R "CEBRA(" -n examples acorn cebra | head -20
+acorn/train/cebra_fit.py:25:    """Call sklearn ``CEBRA(...).fit`` / ``.transform`` (N=1)."""
+acorn/train/cebra_fit.py:75:        estimator = CEBRA(**self._cebra_kwargs(adv)) 
+cebra/grid_search.py:117:            models[model_name] = cebra_sklearn_cebra.CEBRA(
+cebra/grid_search.py:363:        best_score = [cebra_sklearn_cebra.CEBRA(), float("inf"), "test"]
+cebra/integrations/matplotlib.py:785:        >>> cebra_model = cebra.CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:787:        CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:855:        >>> cebra_model = cebra.CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:857:        CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:920:        >>> cebra_model = cebra.CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:922:        CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:978:        >>> cebra_model = cebra.CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:980:        CEBRA(max_iterations=10)
+cebra/integrations/matplotlib.py:1069:        >>> cebra_model = cebra.CEBRA(max_mirzaei@haas034:~/sam/result/Aggregate/acorn-main$ 4 brain-to-text without adver
+-bash: mirzaei@haas034:~/sam/result/Aggregate/acorn-main$: No such file or directory
+grep: examples: No such file or directory
+grep: acorn: No such file or directory
+grep: cebra: No such file or directory
+-bash: acorn/train/cebra_fit.py:25:: No such file or directory
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `>'
+-bash: mirzaei@haas034:~/sam/result/Aggregate/acorn-main$: No such file or directory
+-bash: examples/README.md:34:: No such file or directory
+offset36_cebra: command not found
+perich_multi.py: command not found
+perich_cebra_adv_nozscore.py: command not found
+-bash: examples/README.md:44:: No such file or directory
+-bash: examples/README.md:59:: No such file or directory
+-bash: examples/README.md:58:: No such file or directory
+-bash: examples/hippo_cebra_adv.py:1:Hippo sklearn CEBRA.fit adversarial GRU.
+examples/hippo_cebra_adv.py:4:# GRU 64/64/1, training_mode=adversarial, decoder_adv=pgd, fit(data, labels)
+examples/hippo_cebra_adv_nozscore.py:1:Hippo: No such file or directory
+offset36_cebra: command not found
+offset36_cebra: command not found
+hippo_cebra_adv_time.py: command not found
+hippo_cebra_adv_nozscore.py: command not found
+-bash: examples/hippo_cebra_adv_nozscore.py:4:#: No such file or directory
+-bash: syntax error near unexpected token `('
+-bash: examples/notebooks/demo_macaque_multi.ipynb:19:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi.ipynb:21:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi.ipynb:188:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi_baseline.ipynb:8:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi_baseline.ipynb:16:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi_baseline.ipynb:17:: No such file or directory
+demo_macaque_multi.ipynb: command not found
+-bash: examples/notebooks/demo_macaque_multi_baseline.ipynb:19:: No such file or directory
+-bash: examples/notebooks/demo_macaque_multi_baseline.ipynb:186:: No such file or directory
+-bash: examples/notebooks/demo_nlp21.ipynb:15:: No such file or directory
+-bash: examples/notebooks/demo_nlp21.ipynb:16:: No such file or directory
+-bash: examples/notebooks/demo_perich_multi.ipynb:16:: No such file or directory
+-bash: examples/notebooks/demo_perich_single.ipynb:17:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:25:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:102:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:116:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:125:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:136:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:173:: No such file or directory
+-bash: examples/notebooks/demo_sequence_multi.ipynb:177:: No such file or directory
+-bash: examples/notebooks/nb_lib.py:26:NO_ADV_LABEL: No such file or directory
+-bash: syntax error near unexpected token `('
+-bash: syntax error near unexpected token `('
+-bash: examples/notebooks/nb_lib.py:381:: No such file or directory
+-bash: syntax error near unexpected token `('
+-bash: examples/perich_cebra_adv_nozscore.py:1:Perich sklearn CEBRA.fit adversarial GRU without spike z-score.
+examples/perich_cebra_time.py:5:# training_mode=clean adv_alternate=False
+examples/perich_cebra_time_adv.py:1:Perich: No such file or directory
+-bash: syntax error near unexpected token `('
+-bash: examples/sequence_multi_baseline.py:1:Sequence CTC on all four Dryad corpora without adversarial training.
+examples/sequence_nlp10_baseline.py:1:NLP10: No such file or directory
+-bash: examples/sequence_nlp21_baseline.py:1:NLP21 brain-to-text without adversarial training, offset36_ctc.
+examples/sequence_speech24_baseline.py:1:Speech24: No such file or directory
+-bash: mirzaei@haas034:~/sam/result/Aggregate/acorn-main$: No such file or directory
+mirzaei@haas034:~$ 
