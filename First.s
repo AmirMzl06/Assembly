@@ -1,5 +1,46 @@
-cd /mnt/upmwmathis/scratch/hossein/aj_project/adversarial_BCI
-
-find . -type d -name "decoder_standard"
-
-find ./decoder_standard -type f
+mirzaei@haas034:/mnt/upmwmathis/scratch/hossein/aj_project/adversarial_BCI$ find . -type d -name "decoder_standard"
+./decoder_standard
+mirzaei@haas034:/mnt/upmwmathis/scratch/hossein/aj_project/adversarial_BCI$ find ./decoder_standard -type f
+./decoder_standard/.git/info/exclude
+./decoder_standard/.git/hooks/push-to-checkout.sample
+./decoder_standard/.git/hooks/pre-rebase.sample
+./decoder_standard/.git/hooks/post-update.sample
+./decoder_standard/.git/hooks/fsmonitor-watchman.sample
+./decoder_standard/.git/hooks/update.sample
+./decoder_standard/.git/hooks/commit-msg.sample
+./decoder_standard/.git/hooks/pre-push.sample
+./decoder_standard/.git/hooks/prepare-commit-msg.sample
+./decoder_standard/.git/hooks/pre-merge-commit.sample
+./decoder_standard/.git/hooks/applypatch-msg.sample
+./decoder_standard/.git/hooks/pre-receive.sample
+./decoder_standard/.git/hooks/pre-commit.sample
+./decoder_standard/.git/hooks/pre-applypatch.sample
+./decoder_standard/.git/description
+./decoder_standard/.git/refs/heads/master
+./decoder_standard/.git/refs/remotes/origin/HEAD
+./decoder_standard/.git/objects/pack/pack-a2b6e96dc91a9bb74c44caa72628621921c71bf7.pack
+./decoder_standard/.git/objects/pack/pack-a2b6e96dc91a9bb74c44caa72628621921c71bf7.idx
+./decoder_standard/.git/packed-refs
+./decoder_standard/.git/logs/refs/remotes/origin/HEAD
+./decoder_standard/.git/logs/refs/heads/master
+./decoder_standard/.git/logs/HEAD
+./decoder_standard/.git/HEAD
+./decoder_standard/.git/config
+./decoder_standard/.git/index
+./decoder_standard/.ipynb_checkpoints/decoder_standard_demo-checkpoint.ipynb
+./decoder_standard/.vscode/settings.json
+./decoder_standard/__init__.py
+./decoder_standard/__pycache__/fnn_decoder.cpython-37.pyc
+./decoder_standard/__pycache__/rnn_decoder.cpython-310.pyc
+./decoder_standard/__pycache__/rnn_decoder.cpython-37.pyc
+./decoder_standard/__pycache__/wiener_filter.cpython-36.pyc
+./decoder_standard/__pycache__/wiener_filter.cpython-37.pyc
+./decoder_standard/__pycache__/wiener_filter.cpython-310.pyc
+./decoder_standard/__pycache__/__init__.cpython-310.pyc
+./decoder_standard/decoder_standard_demo.ipynb
+./decoder_standard/fnn_decoder.py
+./decoder_standard/readme.md
+./decoder_standard/rnn_decoder.py
+./decoder_standard/wiener_filter.py
+mirzaei@haas034:/mnt/upmwmathis/scratch/hossein/aj_project/adversarial_BCI$ find . -type d -name "decoder_standard"
+mirzaei@haas034:/mnt/upmwmathis/scratch/hossein/aj_project/adversarial_BCI$ 
